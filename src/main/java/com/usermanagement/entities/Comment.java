@@ -49,9 +49,16 @@ public final class Comment {
     private Task taskId;
      //(foreign key)
 
-
-
-
-
+    // Explicit getters/setters to break compilation cycle
+    // public Long getId() { return id; }
+    // public void setId(Long id) { this.id = id; }
+    // public Date getTimestamp() { return timestamp; }
+    // public String getComment() { return comment; }
+    // public User getUserId() { return userId; }
+    // public Task getTaskId() { return taskId; }
+    // public void setComment(String comment) { this.comment = comment; }
+    // public void setTimestamp(Date timestamp) { this.timestamp = timestamp; }
+    // public void setTaskId(Task taskId) { this.taskId = taskId; }
+    // public void setUserId(User userId) { this.userId = userId; }
 
 }

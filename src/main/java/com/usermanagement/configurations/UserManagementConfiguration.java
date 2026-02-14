@@ -42,6 +42,11 @@ public class UserManagementConfiguration {
 
 private final UserRepo userRepo;
 
+    // Explicit constructor to break compilation cycle
+    // public UserManagementConfiguration(UserRepo userRepo) {
+    //     this.userRepo = userRepo;
+    // }
+
     @Bean
     public UserDetailsService getUserDetailsService(){
         UserDetailsService userDetailsService = new UserDetailsService() {

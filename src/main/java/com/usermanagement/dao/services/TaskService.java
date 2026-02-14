@@ -3,6 +3,7 @@ package com.usermanagement.dao.services;
 import com.usermanagement.entities.Task;
 import com.usermanagement.entities.User;
 import com.usermanagement.errorHandler.TaskGeneralErrorException;
+import com.usermanagement.mappers.DtoMapper;
 import com.usermanagement.repositories.TaskRepo;
 import com.usermanagement.requestObjects.CreateTaskRequest;
 import com.usermanagement.requestObjects.UpdateTaskRequest;
@@ -25,7 +26,15 @@ public class TaskService {
 
     private final TaskRepo taskRepo;
     private final UserService userService;
+    private final DtoMapper dtoMapper;
     private TaskStatus taskStatus = new TaskStatus();
+    
+    // Explicit constructor to break compilation cycle
+    // public TaskService(TaskRepo taskRepo, UserService userService, DtoMapper dtoMapper) {
+    //     this.taskRepo = taskRepo;
+    //     this.userService = userService;
+    //     this.dtoMapper = dtoMapper;
+    // }
 
     public TaskResponse createTask(CreateTaskRequest taskObj) throws TaskGeneralErrorException {
         TaskStatus taskStatus = new TaskStatus();
@@ -35,14 +44,14 @@ public class TaskService {
         if(checkDuplication.isPresent())
             throw new TaskGeneralErrorException("The Task already exists. Can not create task with the same title.");
         Task savedTask =  taskRepo.save(task);
-        return mapToTaskResponse(savedTask);
+        return dtoMapper.toTaskResponse(savedTask);
     }
 
     public TaskResponse updateTask(UpdateTaskRequest taskObj) throws TaskGeneralErrorException {
         Task task = taskRepo.getReferenceById(taskObj.id());
         task = taskObj.updateTaskParameters(taskObj,task);
         Task savedTask =  taskRepo.save(task);
-        return mapToTaskResponse(savedTask);
+        return dtoMapper.toTaskResponse(savedTask);
     }
 
     public String deleteTask(long id){
@@ -55,7 +64,7 @@ public class TaskService {
     public List<TaskResponse> getAllTaskList(){
         List<Task> taskList = taskRepo.findAll();
         return taskList.stream()
-                .map(this::mapToTaskResponse)
+                .map(dtoMapper::toTaskResponse)
                 .collect(Collectors.toList());
     }
 
@@ -64,7 +73,7 @@ public class TaskService {
         return  taskRepo.findAll(pageable)
                 .getContent()
                 .stream()
-                .map(this::mapToTaskResponse)
+                .map(dtoMapper::toTaskResponse)
                 .collect(Collectors.toList());
     }
 
@@ -133,19 +142,5 @@ public class TaskService {
         return "The update did not occurred. ";
 
        return "Update successfully";
-    }
-
-    private TaskResponse mapToTaskResponse(Task task) {
-        if (task == null) {
-            return null;
-        }
-        Long assigneeId = task.getAssignee() != null ? task.getAssignee().getId() : null;
-        return new TaskResponse(
-                task.getId(),
-                task.getTitle(),
-                task.getDescription(),
-                task.getStatus(),
-                assigneeId
-        );
     }
 }

@@ -10,4 +10,8 @@ import lombok.NoArgsConstructor;
 public class AuthenticationRequest {
     private String email;
     private String password;
+    
+    // Explicit getters to break compilation cycle
+        public String getEmail() { return email; }
+        public String getPassword() { return password; }
 }

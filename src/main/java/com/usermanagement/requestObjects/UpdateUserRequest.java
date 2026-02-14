@@ -23,7 +23,7 @@ public record UpdateUserRequest(
         if(updateObj.isName())
             user.setName(updateObj.name());
         if(updateObj.isAdminNotNull())
-            user.setAdmin(updateObj.isAdmin());
+            user.setIsAdmin(updateObj.isAdmin());
         if(updateObj.isUserActive())
             user.setActive(updateObj.active());
         if(updateObj.isPassword())

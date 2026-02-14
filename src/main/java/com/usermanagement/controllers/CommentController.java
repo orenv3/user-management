@@ -26,6 +26,11 @@ import java.util.List;
 public class CommentController {
 
     private final CommentService commentService;
+    
+    // Explicit constructor to break compilation cycle
+    // public CommentController(CommentService commentService) {
+    //     this.commentService = commentService;
+    // }
 
     /**
      * Admin privilege

@@ -9,4 +9,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AuthResponse {
     private String token;
+    
+    // Explicit constructor to break compilation cycle
+    // public AuthResponse(String token) {
+    //     this.token = token;
+    // }
 }

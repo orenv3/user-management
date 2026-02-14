@@ -21,14 +21,7 @@ import java.util.List;
 @Table(name = "user")
 public final class User implements UserDetails {
 
-public User(CreateUserRequest createUserRequest){
-    this.active = createUserRequest.active();
-    this.email =createUserRequest.email();
-    this.isAdmin = createUserRequest.isAdmin();
-    this.name = createUserRequest.name();
-    this.password = createUserRequest.password();
 
-}
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -87,5 +80,27 @@ public User(CreateUserRequest createUserRequest){
         return isActive();
     }
 
+    public User(CreateUserRequest createUserRequest){
+    this.active = createUserRequest.active();
+    this.email =createUserRequest.email();
+    this.isAdmin = createUserRequest.isAdmin();
+    this.name = createUserRequest.name();
+    this.password = createUserRequest.password();
+
+}
+    // Explicit getters/setters to break compilation cycle (Lombok @Data will also generate these)
+    // public Long getId() { return id; }
+    // public void setId(Long id) { this.id = id; }
+    // public String getName() { return name; }
+    // public String getEmail() { return email; }
+    // public boolean isAdmin() { return isAdmin; }
+    // public boolean isActive() { return active; }
+    // public void setName(String name) { this.name = name; }
+    // public void setEmail(String email) { this.email = email; }
+    // public void setIsAdmin(boolean isAdmin) { this.isAdmin = isAdmin; }
+    // public void setActive(boolean active) { this.active = active; }
+    // public void setPassword(String password) { this.password = password; }
+    // public void setRole(Role role) { this.role = role; }
+    // public Role getRole() { return role; }
 
 }

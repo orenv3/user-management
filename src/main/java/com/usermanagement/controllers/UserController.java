@@ -26,6 +26,11 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    
+    // Explicit constructor to break compilation cycle (Lombok @RequiredArgsConstructor will also generate this)
+    // public UserController(UserService userService) {
+    //     this.userService = userService;
+    // }
 
 
 

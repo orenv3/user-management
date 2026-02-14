@@ -28,6 +28,11 @@ import java.util.List;
 public class TaskController {
 
     private final TaskService taskService;
+    
+    // Explicit constructor to break compilation cycle
+    // public TaskController(TaskService taskService) {
+    //     this.taskService = taskService;
+    // }
 
     /**
      * Admin privilege

@@ -1,6 +1,7 @@
 package com.usermanagement.dao.services;
 
 import com.usermanagement.entities.User;
+import com.usermanagement.mappers.DtoMapper;
 import com.usermanagement.repositories.UserRepo;
 import com.usermanagement.requestObjects.UpdateUserRequest;
 import com.usermanagement.responseObjects.UserResponse;
@@ -18,16 +19,23 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepo userRepo;
+    private final DtoMapper dtoMapper;
+    
+    // Explicit constructor to break compilation cycle
+    // public UserService(UserRepo userRepo, DtoMapper dtoMapper) {
+    //     this.userRepo = userRepo;
+    //     this.dtoMapper = dtoMapper;
+    // }
 
     public UserResponse updateUser(UpdateUserRequest updateObj){
         User user = userRepo.getReferenceById(updateObj.id());
         user = updateObj.updateUserParameters(updateObj,user);
         User savedUser =  userRepo.save(user);
-        return mapToUserResponse(savedUser);
+        return dtoMapper.toUserResponse(savedUser);
     }
 
     public String deleteUser(long id){
-        User user = userRepo.getReferenceById(id);
+        // User user = userRepo.getReferenceById(id);
         userRepo.deleteById(id);
         return "Deleted: "+!(userRepo.existsById(id));
     }
@@ -36,7 +44,7 @@ public class UserService {
     public List<UserResponse> getAllUserList(){
         List<User> usersList = userRepo.findAll();
         return usersList.stream()
-                .map(this::mapToUserResponse)
+                .map(dtoMapper::toUserResponse)
                 .collect(Collectors.toList());
     }
 
@@ -45,7 +53,7 @@ public class UserService {
         return userRepo.findAll(pageable)
                 .getContent()
                 .stream()
-                .map(this::mapToUserResponse)
+                .map(dtoMapper::toUserResponse)
                 .collect(Collectors.toList());
 
     }
@@ -55,19 +63,6 @@ public class UserService {
     }
     public Optional<User> findUserByEmail(String email){
         return userRepo.findByEmail(email);
-    }
-
-    private UserResponse mapToUserResponse(User user) {
-        if (user == null) {
-            return null;
-        }
-        return new UserResponse(
-                user.getId(),
-                user.getName(),
-                user.getEmail(),
-                user.isAdmin(),
-                user.isActive()
-        );
     }
 }
 

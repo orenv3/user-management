@@ -24,6 +24,13 @@ public class AuthFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
     private final AuthenticationProvider authenticationProvider;
+    
+    // Explicit constructor to break compilation cycle
+    // public AuthFilter(JwtService jwtService, UserDetailsService userDetailsService, AuthenticationProvider authenticationProvider) {
+    //     this.jwtService = jwtService;
+    //     this.userDetailsService = userDetailsService;
+    //     this.authenticationProvider = authenticationProvider;
+    // }
 
 
     @Override

@@ -18,6 +18,12 @@ public class SecurityConfiguration {
 
     private final AuthFilter authFilter;
     private final AuthenticationProvider authProvider;
+    
+    // Explicit constructor to break compilation cycle
+    // public SecurityConfiguration(AuthFilter authFilter, AuthenticationProvider authProvider) {
+    //     this.authFilter = authFilter;
+    //     this.authProvider = authProvider;
+    // }
 
     @Bean // SecurityFilterChain is responsible/config for all the traffic and filters of http of our APP
     public SecurityFilterChain getSecurityFilterChain(HttpSecurity http) throws Exception {

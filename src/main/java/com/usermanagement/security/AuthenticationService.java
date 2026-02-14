@@ -21,6 +21,14 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authMng;
+    
+    // Explicit constructor to break compilation cycle
+    // public AuthenticationService(UserRepo userRepo, PasswordEncoder passwordEncoder, JwtService jwtService, AuthenticationManager authMng) {
+    //     this.userRepo = userRepo;
+    //     this.passwordEncoder = passwordEncoder;
+    //     this.jwtService = jwtService;
+    //     this.authMng = authMng;
+    // }
 
 
     public AuthResponse registerUser(CreateUserRequest registerRequest) throws UserValidationErrorException {

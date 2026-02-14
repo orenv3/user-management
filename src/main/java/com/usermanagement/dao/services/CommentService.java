@@ -4,6 +4,7 @@ package com.usermanagement.dao.services;
 import com.usermanagement.entities.Comment;
 import com.usermanagement.entities.Task;
 import com.usermanagement.errorHandler.CommentGeneralErrorException;
+import com.usermanagement.mappers.DtoMapper;
 import com.usermanagement.repositories.CommentRepo;
 import com.usermanagement.requestObjects.UserTaskCommentRequest;
 import com.usermanagement.requestObjects.AdminCreateCommentRequest;
@@ -26,6 +27,16 @@ public class CommentService {
     private final TaskService taskRepo;
     private final UserService userRepo;
     private final EntityManager entityManager;
+    private final DtoMapper dtoMapper;
+    
+    // Explicit constructor to break compilation cycle
+    // public CommentService(CommentRepo commentRepo, TaskService taskRepo, UserService userRepo, EntityManager entityManager, DtoMapper dtoMapper) {
+    //     this.commentRepo = commentRepo;
+    //     this.taskRepo = taskRepo;
+    //     this.userRepo = userRepo;
+    //     this.entityManager = entityManager;
+    //     this.dtoMapper = dtoMapper;
+    // }
 
 
     public CommentResponse createComment(AdminCreateCommentRequest commentObj) {
@@ -37,7 +48,7 @@ public class CommentService {
         comment.setTaskId(taskToComment);
         comment.setUserId(taskToComment.getAssignee());
         Comment saved = commentRepo.save(comment);
-        return mapToCommentResponse(saved);
+        return dtoMapper.toCommentResponse(saved);
     }
 
     public CommentsResponse userCommentOnTask(UserTaskCommentRequest commentObj) {
@@ -66,13 +77,13 @@ public class CommentService {
         Comment comment = commentRepo.getReferenceById(commentObj.id());
         comment = commentObj.updateCommentParameters(commentObj, comment);
         Comment saved = commentRepo.save(comment);
-        return mapToCommentResponse(saved);
+        return dtoMapper.toCommentResponse(saved);
     }
 
     public List<CommentResponse> getAllCommentList() {
         List<Comment> commentList = commentRepo.findAll();
         return commentList.stream()
-                .map(this::mapToCommentResponse)
+                .map(dtoMapper::toCommentResponse)
                 .collect(Collectors.toList());
     }
 
@@ -114,21 +125,6 @@ public class CommentService {
                         com.getTaskId().getId(),
                         com.getTaskId().getTitle(), "")).collect(Collectors.toList());
         return response;
-    }
-
-    private CommentResponse mapToCommentResponse(Comment comment) {
-        if (comment == null) {
-            return null;
-        }
-        Long userId = comment.getUserId() != null ? comment.getUserId().getId() : null;
-        Long taskId = comment.getTaskId() != null ? comment.getTaskId().getId() : null;
-        return new CommentResponse(
-                comment.getId(),
-                comment.getTimestamp(),
-                comment.getComment(),
-                userId,
-                taskId
-        );
     }
 }
 

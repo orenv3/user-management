@@ -1,6 +1,7 @@
 package com.usermanagement.dao.services;
 
 import com.usermanagement.entities.User;
+import com.usermanagement.mappers.DtoMapper;
 import com.usermanagement.repositories.UserRepo;
 import com.usermanagement.requestObjects.CreateUserRequest;
 import com.usermanagement.requestObjects.UpdateUserRequest;
@@ -23,6 +24,10 @@ class UserServiceTest {
 
     @Mock
     private UserRepo userRepo;
+    
+    @Mock
+    private DtoMapper dtoMapper;
+    
     private AutoCloseable autoCloseable;
     private UserService userServiceUnderTest;
 
@@ -30,12 +35,24 @@ class UserServiceTest {
     @BeforeEach
     public void setup() {
         autoCloseable = MockitoAnnotations.openMocks(this);
-        userServiceUnderTest = new UserService(userRepo);
+        userServiceUnderTest = new UserService(userRepo, dtoMapper);
 
         when(userRepo.findAll()).thenReturn(this.getUserList());
         when(userRepo.findByEmail(any())).thenReturn(Optional.ofNullable(this.getUserPrivilge()));
         when(userRepo.getReferenceById(3L)).thenReturn(this.getUserPrivilge());
         when(userRepo.existsById(3L)).thenReturn(false);
+        
+        // Mock DtoMapper to return UserResponse for any User
+        when(dtoMapper.toUserResponse(any(User.class))).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            return new UserResponse(
+                    user.getId(),
+                    user.getName(),
+                    user.getEmail(),
+                    user.isAdmin(),
+                    user.isActive()
+            );
+        });
     }
 
     @AfterEach
@@ -67,6 +84,15 @@ class UserServiceTest {
 
         when(userRepo.getReferenceById(userId)).thenReturn(existingUser);
         when(userRepo.save(any(User.class))).thenReturn(updatedUser);
+        
+        UserResponse expectedResponse = new UserResponse(
+                userId,
+                updateRequest.name(),
+                updateRequest.email(),
+                updateRequest.isAdmin(),
+                updateRequest.active()
+        );
+        when(dtoMapper.toUserResponse(updatedUser)).thenReturn(expectedResponse);
 
         // When
         UserResponse result = userServiceUnderTest.updateUser(updateRequest);
@@ -87,6 +113,7 @@ class UserServiceTest {
 
         // Then verify
         verify(userRepo).findAll();
+        verify(dtoMapper, times(5)).toUserResponse(any(User.class));
         assertThat(usersListUnderTest).isNotNull();
         assertThat(usersListUnderTest.size()).isEqualTo(5);
 

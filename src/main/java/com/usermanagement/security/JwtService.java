@@ -33,12 +33,12 @@ public class JwtService {
     }
 
     public String generateToken(
-            Map<String,Object> ngSoftClaims,
+            Map<String,Object> Claims,
             UserDetails userDetails){
 
-       // ngSoftClaims.put("role",((User)userDetails).getRole().name());
+   
         return Jwts.builder()
-                .setClaims(ngSoftClaims)
+                .setClaims(Claims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis())) // when the claim created helps to calc the exp
                 .setExpiration(new Date(System.currentTimeMillis() + 1000*60*60*48))
