@@ -3,7 +3,7 @@ package com.usermanagement.dao.services;
 import com.usermanagement.entities.Task;
 import com.usermanagement.entities.User;
 import com.usermanagement.errorHandler.TaskGeneralErrorException;
-import com.usermanagement.mappers.DtoMapper;
+import com.usermanagement.mappers.EntityMapper;
 import com.usermanagement.repositories.TaskRepo;
 import com.usermanagement.requestObjects.CreateTaskRequest;
 import com.usermanagement.requestObjects.UpdateTaskRequest;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+
 
 @RequiredArgsConstructor
 @Service("TaskImpl")
@@ -26,32 +26,34 @@ public class TaskService {
 
     private final TaskRepo taskRepo;
     private final UserService userService;
-    private final DtoMapper dtoMapper;
+    private final EntityMapper entityMapper;
     private TaskStatus taskStatus = new TaskStatus();
     
-    // Explicit constructor to break compilation cycle
-    // public TaskService(TaskRepo taskRepo, UserService userService, DtoMapper dtoMapper) {
-    //     this.taskRepo = taskRepo;
-    //     this.userService = userService;
-    //     this.dtoMapper = dtoMapper;
-    // }
 
     public TaskResponse createTask(CreateTaskRequest taskObj) throws TaskGeneralErrorException {
         TaskStatus taskStatus = new TaskStatus();
         taskObj.gotValidationException(taskStatus);
-        Task task = new Task(taskObj);
+        Task task = entityMapper.toEntity(taskObj);
         Optional<Task> checkDuplication = taskRepo.findByTitle(task.getTitle());
         if(checkDuplication.isPresent())
             throw new TaskGeneralErrorException("The Task already exists. Can not create task with the same title.");
         Task savedTask =  taskRepo.save(task);
-        return dtoMapper.toTaskResponse(savedTask);
+        return entityMapper.toTaskResponse(savedTask);
     }
 
     public TaskResponse updateTask(UpdateTaskRequest taskObj) throws TaskGeneralErrorException {
         Task task = taskRepo.getReferenceById(taskObj.id());
-        task = taskObj.updateTaskParameters(taskObj,task);
+        // Validate status if provided
+        if (taskObj.status() != null && !taskObj.status().isBlank()) {
+            TaskStatus taskStatus = new TaskStatus();
+            if (!taskStatus.isValidStatus(taskObj.status())) {
+                throw new TaskGeneralErrorException("The status:" + taskObj.status() +
+                        " is not valid. \n Please enter one of the following: " + taskStatus.getStatusOptions());
+            }
+        }
+        entityMapper.updateTaskFromRequest(taskObj, task);
         Task savedTask =  taskRepo.save(task);
-        return dtoMapper.toTaskResponse(savedTask);
+        return entityMapper.toTaskResponse(savedTask);
     }
 
     public String deleteTask(long id){
@@ -63,33 +65,17 @@ public class TaskService {
 
     public List<TaskResponse> getAllTaskList(){
         List<Task> taskList = taskRepo.findAll();
-        return taskList.stream()
-                .map(dtoMapper::toTaskResponse)
-                .collect(Collectors.toList());
+        return entityMapper.toTaskResponseList(taskList);
     }
 
     public List<TaskResponse> getAllTaskListWithPageRequest(int pageNo, int pageSize){
         Pageable pageable = PageRequest.of(pageNo,pageSize);
-        return  taskRepo.findAll(pageable)
-                .getContent()
-                .stream()
-                .map(dtoMapper::toTaskResponse)
-                .collect(Collectors.toList());
+        return entityMapper.toTaskResponseList(taskRepo.findAll(pageable).getContent());
     }
 
     public List<TaskTableResponse> getAllUserTaskList(long assignee){
         List<Task> taskList = taskRepo.getAllByAssignee(assignee,taskStatus.getARCHIVED());
-        List<TaskTableResponse> response = taskList.stream()
-                .parallel().map(tsk -> new TaskTableResponse(
-                                tsk.getId(),
-                                tsk.getTitle(),
-                                tsk.getDescription(),
-                                tsk.getStatus(),
-                                tsk.getAssignee().getId(),
-                                ""
-                        )).collect(Collectors.toList());
-
-        return response;
+        return entityMapper.toTaskTableResponseList(taskList);
     }
 
     public TaskTableResponse assignUserToTask(long taskId, long userId){
@@ -103,12 +89,7 @@ public class TaskService {
         task.setAssignee(user);
         task = taskRepo.save(task);
         String err = "The assignation executed successfully: "+task;
-        TaskTableResponse response = new TaskTableResponse(
-                task.getId(),task.getTitle(),
-                task.getDescription(),task.getStatus(),
-                task.getAssignee().getId(), err + additionalMessage);
-
-        return response;
+        return entityMapper.toTaskTableResponseWithError(task, err + additionalMessage);
     }
 
     public TaskTableResponse unassignUserFromTask(long taskId){
@@ -123,11 +104,17 @@ public class TaskService {
             additionalMessage = " No User was assign to this task";
         }
         String err = "The user assign successfully: "+task;
-        TaskTableResponse response = new TaskTableResponse(
-                task.getId(),task.getTitle(),
-                task.getDescription(),task.getStatus(),
-                null, err + additionalMessage);
-
+        TaskTableResponse response = entityMapper.toTaskTableResponseWithError(task, err + additionalMessage);
+        // Handle null assignee case
+        if (task.getAssignee() == null) {
+            return new TaskTableResponse(
+                    response.task_id(),
+                    response.title(),
+                    response.description(),
+                    response.task_status(),
+                    null,
+                    response.err());
+        }
         return response;
     }
 

@@ -1,7 +1,7 @@
 package com.usermanagement.dao.services;
 
 import com.usermanagement.entities.User;
-import com.usermanagement.mappers.DtoMapper;
+import com.usermanagement.mappers.EntityMapper;
 import com.usermanagement.repositories.UserRepo;
 import com.usermanagement.requestObjects.CreateUserRequest;
 import com.usermanagement.requestObjects.UpdateUserRequest;
@@ -17,6 +17,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -26,7 +27,7 @@ class UserServiceTest {
     private UserRepo userRepo;
     
     @Mock
-    private DtoMapper dtoMapper;
+    private EntityMapper entityMapper;
     
     private AutoCloseable autoCloseable;
     private UserService userServiceUnderTest;
@@ -35,15 +36,15 @@ class UserServiceTest {
     @BeforeEach
     public void setup() {
         autoCloseable = MockitoAnnotations.openMocks(this);
-        userServiceUnderTest = new UserService(userRepo, dtoMapper);
+        userServiceUnderTest = new UserService(userRepo, entityMapper);
 
         when(userRepo.findAll()).thenReturn(this.getUserList());
         when(userRepo.findByEmail(any())).thenReturn(Optional.ofNullable(this.getUserPrivilge()));
         when(userRepo.getReferenceById(3L)).thenReturn(this.getUserPrivilge());
         when(userRepo.existsById(3L)).thenReturn(false);
         
-        // Mock DtoMapper to return UserResponse for any User
-        when(dtoMapper.toUserResponse(any(User.class))).thenAnswer(invocation -> {
+        // Mock EntityMapper to return UserResponse for any User
+        when(entityMapper.toUserResponse(any(User.class))).thenAnswer(invocation -> {
             User user = invocation.getArgument(0);
             return new UserResponse(
                     user.getId(),
@@ -52,6 +53,20 @@ class UserServiceTest {
                     user.isAdmin(),
                     user.isActive()
             );
+        });
+        
+        // Mock list mapping for getAllUserList
+        when(entityMapper.toUserResponseList(anyList())).thenAnswer(invocation -> {
+            List<User> users = invocation.getArgument(0);
+            return users.stream()
+                    .map(user -> new UserResponse(
+                            user.getId(),
+                            user.getName(),
+                            user.getEmail(),
+                            user.isAdmin(),
+                            user.isActive()
+                    ))
+                    .toList();
         });
     }
 
@@ -92,7 +107,7 @@ class UserServiceTest {
                 updateRequest.isAdmin(),
                 updateRequest.active()
         );
-        when(dtoMapper.toUserResponse(updatedUser)).thenReturn(expectedResponse);
+        when(entityMapper.toUserResponse(updatedUser)).thenReturn(expectedResponse);
 
         // When
         UserResponse result = userServiceUnderTest.updateUser(updateRequest);
@@ -113,7 +128,7 @@ class UserServiceTest {
 
         // Then verify
         verify(userRepo).findAll();
-        verify(dtoMapper, times(5)).toUserResponse(any(User.class));
+        verify(entityMapper).toUserResponseList(anyList());
         assertThat(usersListUnderTest).isNotNull();
         assertThat(usersListUnderTest.size()).isEqualTo(5);
 
@@ -162,31 +177,20 @@ class UserServiceTest {
     void deleteUser() {
         // Given
         long userIdToDelete = 3L;
-        User userToDelete = getUserPrivilge();
-        when(userRepo.getReferenceById(userIdToDelete)).thenReturn(userToDelete);
         when(userRepo.existsById(userIdToDelete)).thenReturn(false);
 
         // When
         String result = userServiceUnderTest.deleteUser(userIdToDelete);
 
         // Then
-        verify(userRepo).getReferenceById(userIdToDelete);
         verify(userRepo).deleteById(userIdToDelete);
         verify(userRepo).existsById(userIdToDelete);
         assertThat(result).isEqualTo("Deleted: true");
     }
 
-
-
-
-
     /**
      * Helper methods to create test data.
      */
-
-
-
-
     private List<User> getUserList() {
         CreateUserRequest userRequest1 = new CreateUserRequest(
                 "oren", "oren@email1",

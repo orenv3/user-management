@@ -3,6 +3,7 @@ package com.usermanagement.security;
 import com.usermanagement.utils.Role;
 import com.usermanagement.entities.User;
 import com.usermanagement.errorHandler.UserValidationErrorException;
+import com.usermanagement.mappers.EntityMapper;
 import com.usermanagement.repositories.UserRepo;
 import com.usermanagement.requestObjects.CreateUserRequest;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authMng;
+    private final EntityMapper entityMapper;
     
     // Explicit constructor to break compilation cycle
     // public AuthenticationService(UserRepo userRepo, PasswordEncoder passwordEncoder, JwtService jwtService, AuthenticationManager authMng) {
@@ -35,7 +37,7 @@ public class AuthenticationService {
         Optional<User> checkDuplication = userRepo.findByEmail(registerRequest.email());
         if(checkDuplication.isPresent())
             throw new UserValidationErrorException("The user: "+registerRequest.email()+" already exists");
-        User user = new User(registerRequest);
+        User user = entityMapper.toEntity(registerRequest);
         user.setRole(Role.chooseRole(user.isAdmin()));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepo.save(user);

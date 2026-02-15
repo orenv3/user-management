@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -27,12 +28,6 @@ public class UserController {
 
     private final UserService userService;
     
-    // Explicit constructor to break compilation cycle (Lombok @RequiredArgsConstructor will also generate this)
-    // public UserController(UserService userService) {
-    //     this.userService = userService;
-    // }
-
-
 
     /**
      * Admin privilege

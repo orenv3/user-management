@@ -4,7 +4,7 @@ package com.usermanagement.dao.services;
 import com.usermanagement.entities.Comment;
 import com.usermanagement.entities.Task;
 import com.usermanagement.errorHandler.CommentGeneralErrorException;
-import com.usermanagement.mappers.DtoMapper;
+import com.usermanagement.mappers.EntityMapper;
 import com.usermanagement.repositories.CommentRepo;
 import com.usermanagement.requestObjects.UserTaskCommentRequest;
 import com.usermanagement.requestObjects.AdminCreateCommentRequest;
@@ -27,28 +27,19 @@ public class CommentService {
     private final TaskService taskRepo;
     private final UserService userRepo;
     private final EntityManager entityManager;
-    private final DtoMapper dtoMapper;
+    private final EntityMapper entityMapper;
     
-    // Explicit constructor to break compilation cycle
-    // public CommentService(CommentRepo commentRepo, TaskService taskRepo, UserService userRepo, EntityManager entityManager, DtoMapper dtoMapper) {
-    //     this.commentRepo = commentRepo;
-    //     this.taskRepo = taskRepo;
-    //     this.userRepo = userRepo;
-    //     this.entityManager = entityManager;
-    //     this.dtoMapper = dtoMapper;
-    // }
-
 
     public CommentResponse createComment(AdminCreateCommentRequest commentObj) {
         Task taskToComment = taskRepo.getTaskById(commentObj.taskId());
         if (taskToComment.getAssignee() == null)
             throw new CommentGeneralErrorException("In order to comment assignee in the task is a must. task: " + taskToComment);
 
-        Comment comment = new Comment(commentObj);
+        Comment comment = entityMapper.toEntity(commentObj);
         comment.setTaskId(taskToComment);
         comment.setUserId(taskToComment.getAssignee());
         Comment saved = commentRepo.save(comment);
-        return dtoMapper.toCommentResponse(saved);
+        return entityMapper.toCommentResponse(saved);
     }
 
     public CommentsResponse userCommentOnTask(UserTaskCommentRequest commentObj) {
@@ -59,32 +50,24 @@ public class CommentService {
             throw new CommentGeneralErrorException("The user with id: " + commentObj.userId() + " can not comment on task " + taskToComment);
         }
 
-        Comment comment = new Comment(commentObj);
+        Comment comment = entityMapper.toEntity(commentObj);
         comment.setTaskId(taskToComment);
         comment.setUserId(taskToComment.getAssignee());
         Comment response = commentRepo.save(comment);
-        return new CommentsResponse(
-                response.getTimestamp(),
-                response.getComment(),
-                response.getUserId().getId(),
-                response.getTaskId().getId(),
-                response.getTaskId().getTitle(),
-                "Comment added successfully");
+        return entityMapper.toCommentsResponseWithError(response, "Comment added successfully");
     }
 
 
     public CommentResponse updateComment(UpdateCommentRequest commentObj) {
         Comment comment = commentRepo.getReferenceById(commentObj.id());
-        comment = commentObj.updateCommentParameters(commentObj, comment);
+        entityMapper.updateCommentFromRequest(commentObj, comment);
         Comment saved = commentRepo.save(comment);
-        return dtoMapper.toCommentResponse(saved);
+        return entityMapper.toCommentResponse(saved);
     }
 
     public List<CommentResponse> getAllCommentList() {
         List<Comment> commentList = commentRepo.findAll();
-        return commentList.stream()
-                .map(dtoMapper::toCommentResponse)
-                .collect(Collectors.toList());
+        return entityMapper.toCommentResponseList(commentList);
     }
 
     public List<CommentsResponse> getAllUserCommentList(long userId) {
@@ -92,19 +75,10 @@ public class CommentService {
         List<String> taskNames = userTasks.stream().parallel().map(tsk -> tsk.title()).collect(Collectors.toList());
         List<Comment> commentList = commentRepo.findByTaskId_TitleIn(taskNames);
 
-        List<CommentsResponse> response = commentList.stream().parallel().map(com ->
-                new CommentsResponse(
-                        com.getTimestamp(),
-                        com.getComment(),
-                        com.getUserId().getId(),
-                        com.getTaskId().getId(),
-                        com.getTaskId().getTitle(), "")).collect(Collectors.toList());
-
-        return response;
+        return entityMapper.toCommentsResponseList(commentList);
     }
 
     public List<CommentsResponse> getAllUserCommentListViaNativeQuery(long userId) {
-
         List<Comment> commentList = entityManager.createQuery("""
     SELECT c 
      FROM Comment c 
@@ -116,15 +90,7 @@ public class CommentService {
                 .setParameter("userId", userId)
                 .getResultList();
 
-
-        List<CommentsResponse> response = commentList.stream().parallel().map(com ->
-                new CommentsResponse(
-                        com.getTimestamp(),
-                        com.getComment(),
-                        com.getUserId().getId(),
-                        com.getTaskId().getId(),
-                        com.getTaskId().getTitle(), "")).collect(Collectors.toList());
-        return response;
+        return entityMapper.toCommentsResponseList(commentList);
     }
 }
 

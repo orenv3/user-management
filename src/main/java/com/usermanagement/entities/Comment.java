@@ -8,22 +8,13 @@ import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
-
 @NoArgsConstructor
 @Data
 @Entity
 @Table(name = "comment")
 public final class Comment {
 
-    public Comment(AdminCreateCommentRequest commentObj){
-        this.comment = commentObj.comment();
-        this.timestamp = new Date();
-    }
-
-    public Comment(UserTaskCommentRequest commentObj){
-        this.comment = commentObj.comment();
-        this.timestamp = new Date();
-    }
+   
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -49,16 +40,14 @@ public final class Comment {
     private Task taskId;
      //(foreign key)
 
-    // Explicit getters/setters to break compilation cycle
-    // public Long getId() { return id; }
-    // public void setId(Long id) { this.id = id; }
-    // public Date getTimestamp() { return timestamp; }
-    // public String getComment() { return comment; }
-    // public User getUserId() { return userId; }
-    // public Task getTaskId() { return taskId; }
-    // public void setComment(String comment) { this.comment = comment; }
-    // public void setTimestamp(Date timestamp) { this.timestamp = timestamp; }
-    // public void setTaskId(Task taskId) { this.taskId = taskId; }
-    // public void setUserId(User userId) { this.userId = userId; }
+      public Comment(AdminCreateCommentRequest commentObj){
+        this.comment = commentObj.comment();
+        this.timestamp = new Date();
+    }
 
+    public Comment(UserTaskCommentRequest commentObj){
+        this.comment = commentObj.comment();
+        this.timestamp = new Date();
+    }
+   
 }
