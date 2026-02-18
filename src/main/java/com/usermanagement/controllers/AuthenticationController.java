@@ -8,14 +8,14 @@ import com.usermanagement.security.AuthenticationService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin("*")
 @Validated
-@RequiredArgsConstructor
+@AllArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "AuthenticationController", description = "The Authentication API. " +
         "Responsible on user authentications and adding new users to the system(create users).")

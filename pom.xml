@@ -31,11 +31,18 @@
 		</dependency>
 
 		<!-- PostgreSQL driver for production -->
-		<dependency>
+		<!-- <dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
-		</dependency>
+		</dependency> -->
+	<dependency>
+    <groupId>mysql</groupId>
+    <artifactId>mysql-connector-java</artifactId>
+    <version>8.0.33</version>
+    <scope>runtime</scope>
+</dependency>
+
 		<!-- H2 database for tests only -->
 		<dependency>
 			<groupId>com.h2database</groupId>

@@ -8,7 +8,7 @@ import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
@@ -32,17 +32,17 @@ import java.util.Optional;
 
 @ComponentScan(basePackages = {"com.usermanagement"})
 @Aspect
+@AllArgsConstructor
 @EntityScan(basePackages = "com.usermanagement.entities")
 @EnableJpaRepositories(basePackages = "com.usermanagement.repositories")
 @Import(GeneralExceptionHandler.class)
-@RequiredArgsConstructor
 @Configuration
 public class UserManagementConfiguration {
 
 
 private final UserRepo userRepo;
 
-    // Explicit constructor to break compilation cycle
+  
     // public UserManagementConfiguration(UserRepo userRepo) {
     //     this.userRepo = userRepo;
     // }
