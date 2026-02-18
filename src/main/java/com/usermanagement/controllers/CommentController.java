@@ -9,7 +9,7 @@ import com.usermanagement.dao.services.CommentService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +17,7 @@ import java.util.List;
 
 @CrossOrigin("*")
 @Validated
-@RequiredArgsConstructor
+@AllArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "CommentController", description = "The Comment API. " +
         "Contains all the operations that can be performed on Comment table.")

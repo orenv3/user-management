@@ -10,7 +10,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,7 +17,7 @@ import java.util.List;
 
 @CrossOrigin("*")
 @Validated
-@RequiredArgsConstructor
+@AllArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "UserController", description = "The User API. " +
         "Contains all the operations that can be performed on User table.")
@@ -28,6 +27,9 @@ public class UserController {
 
     private final UserService userService;
     
+// public UserController(UserService userService){
+//     this.userService = userService;
+// }
 
     /**
      * Admin privilege

@@ -4,7 +4,10 @@ import lombok.Getter;
 
 import java.util.Set;
 
+import org.codehaus.plexus.component.annotations.Component;
+
 @Getter
+@Component(role = TaskStatus.class)
 public final class TaskStatus {
   private final String PENDING = "PENDING";
   private final String COMPLETED = "COMPLETED";

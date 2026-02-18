@@ -4,7 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,20 +17,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-@RequiredArgsConstructor
+@AllArgsConstructor
 @Component
 public class AuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
     private final AuthenticationProvider authenticationProvider;
-    
-    // Explicit constructor to break compilation cycle
-    // public AuthFilter(JwtService jwtService, UserDetailsService userDetailsService, AuthenticationProvider authenticationProvider) {
-    //     this.jwtService = jwtService;
-    //     this.userDetailsService = userDetailsService;
-    //     this.authenticationProvider = authenticationProvider;
-    // }
 
 
     @Override

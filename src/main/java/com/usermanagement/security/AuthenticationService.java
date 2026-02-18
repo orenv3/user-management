@@ -6,7 +6,7 @@ import com.usermanagement.errorHandler.UserValidationErrorException;
 import com.usermanagement.mappers.EntityMapper;
 import com.usermanagement.repositories.UserRepo;
 import com.usermanagement.requestObjects.CreateUserRequest;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-@RequiredArgsConstructor
+@AllArgsConstructor
 @Service
 public class AuthenticationService {
 

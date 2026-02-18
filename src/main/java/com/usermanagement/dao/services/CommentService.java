@@ -13,13 +13,13 @@ import com.usermanagement.responseObjects.CommentResponse;
 import com.usermanagement.responseObjects.CommentsResponse;
 import com.usermanagement.responseObjects.TaskTableResponse;
 import jakarta.persistence.EntityManager;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-@RequiredArgsConstructor
+@AllArgsConstructor
 @Service("CommentImpl")
 public class CommentService {
 

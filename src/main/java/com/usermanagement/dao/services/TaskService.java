@@ -10,7 +10,7 @@ import com.usermanagement.requestObjects.UpdateTaskRequest;
 import com.usermanagement.responseObjects.TaskResponse;
 import com.usermanagement.responseObjects.TaskTableResponse;
 import com.usermanagement.utils.TaskStatus;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 
-@RequiredArgsConstructor
+@AllArgsConstructor
 @Service("TaskImpl")
 public class TaskService {
 
@@ -27,11 +27,11 @@ public class TaskService {
     private final TaskRepo taskRepo;
     private final UserService userService;
     private final EntityMapper entityMapper;
-    private TaskStatus taskStatus = new TaskStatus();
+    private final TaskStatus taskStatus; 
     
 
     public TaskResponse createTask(CreateTaskRequest taskObj) throws TaskGeneralErrorException {
-        TaskStatus taskStatus = new TaskStatus();
+        
         taskObj.gotValidationException(taskStatus);
         Task task = entityMapper.toEntity(taskObj);
         Optional<Task> checkDuplication = taskRepo.findByTitle(task.getTitle());
@@ -45,7 +45,6 @@ public class TaskService {
         Task task = taskRepo.getReferenceById(taskObj.id());
         // Validate status if provided
         if (taskObj.status() != null && !taskObj.status().isBlank()) {
-            TaskStatus taskStatus = new TaskStatus();
             if (!taskStatus.isValidStatus(taskObj.status())) {
                 throw new TaskGeneralErrorException("The status:" + taskObj.status() +
                         " is not valid. \n Please enter one of the following: " + taskStatus.getStatusOptions());
