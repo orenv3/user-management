@@ -1,6 +1,6 @@
 package com.usermanagement.config;
 
-import com.usermanagement.dao.services.TaskService;
+import com.usermanagement.services.TaskService;
 import com.usermanagement.requestObjects.CreateTaskRequest;
 import com.usermanagement.requestObjects.CreateUserRequest;
 import com.usermanagement.security.AuthenticationService;

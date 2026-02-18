@@ -1,6 +1,6 @@
 package com.usermanagement.controllers;
 
-import com.usermanagement.dao.services.TaskService;
+import com.usermanagement.services.TaskService;
 import com.usermanagement.errorHandler.TaskGeneralErrorException;
 import com.usermanagement.requestObjects.CreateTaskRequest;
 import com.usermanagement.requestObjects.UpdateTaskRequest;

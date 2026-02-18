@@ -5,7 +5,7 @@ import com.usermanagement.requestObjects.AdminCreateCommentRequest;
 import com.usermanagement.requestObjects.UpdateCommentRequest;
 import com.usermanagement.responseObjects.CommentResponse;
 import com.usermanagement.responseObjects.CommentsResponse;
-import com.usermanagement.dao.services.CommentService;
+import com.usermanagement.services.CommentService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

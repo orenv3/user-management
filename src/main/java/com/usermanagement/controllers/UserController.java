@@ -1,7 +1,7 @@
 package com.usermanagement.controllers;
 
 
-import com.usermanagement.dao.services.UserService;
+import com.usermanagement.services.UserService;
 import com.usermanagement.requestObjects.UpdateUserRequest;
 import com.usermanagement.responseObjects.UserResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
