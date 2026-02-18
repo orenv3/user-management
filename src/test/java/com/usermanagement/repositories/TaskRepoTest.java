@@ -5,7 +5,8 @@ import com.usermanagement.entities.User;
 import com.usermanagement.requestObjects.CreateTaskRequest;
 import com.usermanagement.requestObjects.CreateUserRequest;
 import com.usermanagement.utils.TaskStatus;
-import org.junit.jupiter.api.BeforeAll;
+import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,92 +30,66 @@ class TaskRepoTest {
     @Autowired
     private UserRepo userRepoDbBuilder;
 
+    @Autowired
+    private EntityManager entityManager;
+
     private TaskStatus taskStatus = new TaskStatus();
 
+    /** Set in @BeforeEach: user at index 2 (assigned to task3 and task6). */
+    private long assigneeIdForTests;
+    /** Set in @BeforeEach: task at index 2 (third task). */
+    private long taskIdForTests;
 
-    @BeforeAll
-    void setDbTasksAndAssignees(){
+    @BeforeEach
+    void setDbTasksAndAssignees() {
         assignUser2Task();
     }
 
     @Test
     void getAllByAssignee() {
-        // Given - test data is set up in @BeforeAll
-        long assignee = 3L;
         String archivedStatus = taskStatus.getARCHIVED();
-
-        // When
-        List<Task> tasks = taskRepoUnderTest.getAllByAssignee(assignee, archivedStatus);
-
-        // Then
+        List<Task> tasks = taskRepoUnderTest.getAllByAssignee(assigneeIdForTests, archivedStatus);
         assertThat(tasks).isNotNull();
-        assertThat(tasks.size()).isEqualTo(2);
+        assertThat(tasks).hasSize(2);
     }
 
     @Test
     void getAllByAssignee_taskWithRelevantAssigneeAndStatusIsNotArchived() {
-        // Given - test data is set up in @BeforeAll
-        long assignee = 3L;
         String archivedStatus = taskStatus.getARCHIVED();
-
-        // When
-        List<Task> tasks = taskRepoUnderTest.getAllByAssignee(assignee, archivedStatus);
-
-        // Then
+        List<Task> tasks = taskRepoUnderTest.getAllByAssignee(assigneeIdForTests, archivedStatus);
         assertThat(tasks).isNotEmpty();
         for (Task task : tasks) {
             assertThat(task.getAssignee()).isNotNull();
-            assertThat(task.getAssignee().getId()).isEqualTo(assignee);
+            assertThat(task.getAssignee().getId()).isEqualTo(assigneeIdForTests);
             assertThat(task.getStatus()).isNotEqualTo(archivedStatus);
         }
     }
 
     @Test
     void getAllByAssignee_taskWithStatusEquals_NotArchived() {
-        // Given - test data is set up in @BeforeAll
-        long assignee = 3L;
         String archivedStatus = taskStatus.getARCHIVED();
-
-        // When - get initial list
-        List<Task> tasks = taskRepoUnderTest.getAllByAssignee(assignee, archivedStatus);
-
-        // Then - verify initial state
-        assertThat(tasks.size()).isEqualTo(2);
+        List<Task> tasks = taskRepoUnderTest.getAllByAssignee(assigneeIdForTests, archivedStatus);
+        assertThat(tasks).hasSize(2);
         for (Task task : tasks) {
             assertThat(task.getStatus()).isNotEqualTo(archivedStatus);
         }
-
-        // When - archive one task
-        Task taskToArchive = taskRepoUnderTest.getReferenceById(3L);
+        Task taskToArchive = taskRepoUnderTest.findById(taskIdForTests).orElseThrow();
         taskToArchive.setStatus(archivedStatus);
-        taskRepoUnderTest.save(taskToArchive);
-
-        // Then - verify list size decreased
-        tasks = taskRepoUnderTest.getAllByAssignee(assignee, archivedStatus);
-        assertThat(tasks.size()).isEqualTo(1);
-
-        // Verify remaining task is not archived
+        taskRepoUnderTest.saveAndFlush(taskToArchive);
+        tasks = taskRepoUnderTest.getAllByAssignee(assigneeIdForTests, archivedStatus);
+        assertThat(tasks).hasSize(1);
         for (Task task : tasks) {
             assertThat(task.getStatus()).isNotEqualTo(archivedStatus);
         }
     }
 
-
     @Test
     void updateTaskToComplete() {
-        // Given - test data is set up in @BeforeAll
-        long taskId = 3L;
         String completedStatus = taskStatus.getCOMPLETED();
-        Task taskBeforeUpdate = taskRepoUnderTest.getReferenceById(taskId);
-
-        // Verify initial status is not completed
+        Task taskBeforeUpdate = taskRepoUnderTest.findById(taskIdForTests).orElseThrow();
         assertThat(taskBeforeUpdate.getStatus()).isNotEqualTo(completedStatus);
-
-        // When
-        taskRepoUnderTest.updateTaskToComplete(taskId, completedStatus);
-
-        // Then
-        Task taskAfterUpdate = taskRepoUnderTest.getReferenceById(taskId);
+        taskRepoUnderTest.updateTaskToComplete(taskIdForTests, completedStatus);
+        Task taskAfterUpdate = taskRepoUnderTest.findById(taskIdForTests).orElseThrow();
         assertThat(taskAfterUpdate.getStatus()).isEqualTo(completedStatus);
     }
 
@@ -127,21 +102,13 @@ class TaskRepoTest {
      * Helper method to set up test data: creates users and tasks, then assigns users to tasks.
      */
     private void assignUser2Task() {
-       setUsersToDb();
-        createTasks();
-    User user1 = userRepoDbBuilder.getReferenceById(1L);
-    User user2 = userRepoDbBuilder.getReferenceById(2L);
-    User user3 = userRepoDbBuilder.getReferenceById(3L);
-    User user4 = userRepoDbBuilder.getReferenceById(4L);
-    User user5 = userRepoDbBuilder.getReferenceById(5L);
-    Task task1 = taskRepoUnderTest.getReferenceById(1L);
-    Task task2 = taskRepoUnderTest.getReferenceById(2L);
-    Task task3 = taskRepoUnderTest.getReferenceById(3L);
-    Task task4 = taskRepoUnderTest.getReferenceById(4L);
-    Task task5 = taskRepoUnderTest.getReferenceById(5L);
-    Task task6 = taskRepoUnderTest.getReferenceById(6L);
-    Task task7 = taskRepoUnderTest.getReferenceById(7L);
-    Task task8 = taskRepoUnderTest.getReferenceById(8L);
+        List<User> users = setUsersToDb();
+        List<Task> tasks = createTasks();
+        assigneeIdForTests = users.get(2).getId();
+        taskIdForTests = tasks.get(2).getId();
+        Task task1 = tasks.get(0), task2 = tasks.get(1), task3 = tasks.get(2), task4 = tasks.get(3),
+                task5 = tasks.get(4), task6 = tasks.get(5), task7 = tasks.get(6), task8 = tasks.get(7);
+        User user1 = users.get(0), user2 = users.get(1), user3 = users.get(2), user4 = users.get(3), user5 = users.get(4);
 
         task1.setAssignee(user1);
         taskRepoUnderTest.save(task1);
@@ -159,103 +126,35 @@ class TaskRepoTest {
         taskRepoUnderTest.save(task7);
         task8.setAssignee(user5);
         taskRepoUnderTest.save(task8);
+        entityManager.flush();
     }
 
     /**
-     * Helper method to create test users in the database.
+     * Helper method to create test users in the database. Returns saved users in order.
      */
-    private void setUsersToDb() {
-
-        CreateUserRequest userRequest1 = new CreateUserRequest(
-                "oren","oren@email1",
-                true,true,
-                "pass");
-        userRepoDbBuilder.save(new User(userRequest1));
-
-        CreateUserRequest userRequest2 = new CreateUserRequest(
-                "avivit","avivit@email1",
-                true,true,
-                "pass");
-        userRepoDbBuilder.save(new User(userRequest2));
-
-        CreateUserRequest userRequest3 = new CreateUserRequest(
-                "maya","maya@email1",
-                false,true,
-                "pass");
-        userRepoDbBuilder.save(new User(userRequest3));
-
-        CreateUserRequest userRequest4 = new CreateUserRequest(
-                "Daniel","Daniel@email1",
-                false,true,
-                "pass");
-        userRepoDbBuilder.save(new User(userRequest4));
-
-        CreateUserRequest userRequest5 = new CreateUserRequest(
-                "raz","raz@email1",
-                false,true,
-                "pass");
-        userRepoDbBuilder.save(new User(userRequest5));
+    private List<User> setUsersToDb() {
+        return List.of(
+                userRepoDbBuilder.save(new User(new CreateUserRequest("oren", "oren@email1", true, true, "pass"))),
+                userRepoDbBuilder.save(new User(new CreateUserRequest("avivit", "avivit@email1", true, true, "pass"))),
+                userRepoDbBuilder.save(new User(new CreateUserRequest("maya", "maya@email1", false, true, "pass"))),
+                userRepoDbBuilder.save(new User(new CreateUserRequest("Daniel", "Daniel@email1", false, true, "pass"))),
+                userRepoDbBuilder.save(new User(new CreateUserRequest("raz", "raz@email1", false, true, "pass")))
+        );
     }
 
     /**
-     * Helper method to create test tasks in the database.
+     * Helper method to create test tasks in the database. Returns saved tasks in order.
      */
-    private void createTasks() {
-        CreateTaskRequest task1 = new CreateTaskRequest(
-                "task1",
-                "task1",
-                "PENDING"
+    private List<Task> createTasks() {
+        return List.of(
+                taskRepoUnderTest.save(new Task(new CreateTaskRequest("task1", "task1", "PENDING"))),
+                taskRepoUnderTest.save(new Task(new CreateTaskRequest("task2", "task2", "PENDING"))),
+                taskRepoUnderTest.save(new Task(new CreateTaskRequest("task3", "task3", "PENDING"))),
+                taskRepoUnderTest.save(new Task(new CreateTaskRequest("task4", "task4", "PENDING"))),
+                taskRepoUnderTest.save(new Task(new CreateTaskRequest("task5", "task5", "PENDING"))),
+                taskRepoUnderTest.save(new Task(new CreateTaskRequest("task6", "task6", "PENDING"))),
+                taskRepoUnderTest.save(new Task(new CreateTaskRequest("task7", "task7", "PENDING"))),
+                taskRepoUnderTest.save(new Task(new CreateTaskRequest("task8", "task8", "PENDING")))
         );
-        taskRepoUnderTest.save(new Task(task1));
-
-        CreateTaskRequest task2 = new CreateTaskRequest(
-                "task2",
-                "task2",
-                "PENDING"
-        );
-        taskRepoUnderTest.save(new Task(task2));
-
-        CreateTaskRequest task3 = new CreateTaskRequest(
-                "task3",
-                "task3",
-                "PENDING"
-        );
-        taskRepoUnderTest.save(new Task(task3));
-
-        CreateTaskRequest task4 = new CreateTaskRequest(
-                "task4",
-                "task4",
-                "PENDING"
-        );
-        taskRepoUnderTest.save(new Task(task4));
-
-        CreateTaskRequest task5 = new CreateTaskRequest(
-                "task5",
-                "task5",
-                "PENDING"
-        );
-        taskRepoUnderTest.save(new Task(task5));
-
-        CreateTaskRequest task6 = new CreateTaskRequest(
-                "task6",
-                "task6",
-                "PENDING"
-        );
-        taskRepoUnderTest.save(new Task(task6));
-
-        CreateTaskRequest task7 = new CreateTaskRequest(
-                "task7",
-                "task7",
-                "PENDING"
-        );
-        taskRepoUnderTest.save(new Task(task7));
-
-
-        CreateTaskRequest task8 = new CreateTaskRequest(
-                "task8",
-                "task8",
-                "PENDING"
-        );
-        taskRepoUnderTest.save(new Task(task8));
     }
 }
