@@ -3,16 +3,21 @@ package com.usermanagement.entities;
 import com.usermanagement.requestObjects.CreateTaskRequest;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 
 @NoArgsConstructor
+@AllArgsConstructor
 @Data
 @Entity
 @Table(name = "task")
 public final class Task {
 
  
+    @Transient
+    private final CreateTaskRequest createTaskRequest;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -5,15 +5,21 @@ import com.usermanagement.requestObjects.UserTaskCommentRequest;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import java.util.Date;
 
 @NoArgsConstructor
+@AllArgsConstructor
 @Data
 @Entity
 @Table(name = "comment")
 public final class Comment {
 
+    @Transient
+    private final AdminCreateCommentRequest adminCreateCommentRequest;
+    @Transient
+    private final UserTaskCommentRequest userTaskCommentRequest;
    
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
