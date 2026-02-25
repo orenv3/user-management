@@ -42,10 +42,6 @@ public class UserManagementConfiguration {
 
 private final UserRepo userRepo;
 
-  
-    // public UserManagementConfiguration(UserRepo userRepo) {
-    //     this.userRepo = userRepo;
-    // }
 
     @Bean
     public UserDetailsService getUserDetailsService(){

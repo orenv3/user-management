@@ -16,54 +16,54 @@ import java.util.function.Function;
 
 /**
  *
- * This service
- * generates tokens
- * validates tokens
- * manipulate token - extract email etc
+ * This service - JWT:
+ * 1- generates tokens
+ * 2- validates tokens
+ * 3- manipulate token - extract email etc
+ * 4- validate tokens
  */
 @Service
 public class JwtService {
 
-    private static final String SECRET_KEY = //256bit
+    private static final String SECRET_KEY = // 256bit
             "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
 
-
-    public String generateToken(UserDetails userDetails){
-        return generateToken(new HashMap<>(),userDetails);
+    public String generateToken(UserDetails userDetails) {
+        return generateToken(new HashMap<>(), userDetails);
     }
 
     public String generateToken(
-            Map<String,Object> Claims,
-            UserDetails userDetails){
+            Map<String, Object> Claims,
+            UserDetails userDetails) {
 
-   
         return Jwts.builder()
                 .setClaims(Claims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis())) // when the claim created helps to calc the exp
-                .setExpiration(new Date(System.currentTimeMillis() + 1000*60*60*48))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 48))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact(); // generates the token
     }
 
-    public <T> T extractClaim(String token, Function<Claims,T> getClaim){
+    public <T> T extractClaim(String token, Function<Claims, T> getClaim) {
         final Claims claim = extractAllClaims(token);
-//        claim.get() Map<>
+        // claim.get() Map<>
         return getClaim.apply(claim);
     }
 
-    public Claims extractAllClaims(String token){
+    public Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()// in order to parse the token
                 .setSigningKey(getSignInKey())// when we encode or generates token we use the signingKey
-                                             // signingKey --> the signature in the JWS verify that is not change and the sender is the same
+                                              // signingKey --> the signature in the JWS verify that is not change and
+                                              // the sender is the same
                 .build()
-                .parseClaimsJws(token)//after the build we can call/parse the token to
+                .parseClaimsJws(token)// after the build we can call/parse the token to
                 // JWS (JSON Web Signature -> the token object {header,payload,signature} )
-                .getBody();//the payload\info\body of the token
+                .getBody();// the payload\info\body of the token
     }
 
-    public String extractUserEmail(String token){
-        return extractClaim(token,Claims::getSubject);
+    public String extractUserEmail(String token) {
+        return extractClaim(token, Claims::getSubject);
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {

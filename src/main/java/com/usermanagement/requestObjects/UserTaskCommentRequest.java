@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 /**
- * User command: a specific user adds a comment on a specific task.
+ * User comment: a specific user adds a comment on a specific task.
  */
 public record UserTaskCommentRequest(
         @NotBlank @Size(max = 120) String comment,

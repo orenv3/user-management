@@ -16,6 +16,7 @@ public interface TaskRepo extends JpaRepository<Task, Long> {
 
     @Query("FROM Task WHERE assignee.id = :assignee AND status != :arch")
     List<Task> getAllByAssignee(@Param("assignee")long assignee,@Param("arch") String status);
+    
     Optional<Task> findByTitle(String title);
 
     @Transactional

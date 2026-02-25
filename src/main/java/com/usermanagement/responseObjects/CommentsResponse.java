@@ -1,25 +1,21 @@
 package com.usermanagement.responseObjects;
 
-import com.usermanagement.entities.Task;
-import com.usermanagement.entities.User;
-
 import java.util.Date;
 
 public record CommentsResponse(
 
-        Date timestamp,
+                Date timestamp,
 
-        String comment,
+                String comment,
 
-        long userId,
+                long userId,
 
-        long taskId,
+                long taskId,
 
-        String title,
+                String title,
 
-        String err
+                String err
 
 ) {
-
 
 }

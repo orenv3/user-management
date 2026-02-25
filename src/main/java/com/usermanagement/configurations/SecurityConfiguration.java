@@ -18,33 +18,26 @@ public class SecurityConfiguration {
 
     private final AuthFilter authFilter;
     private final AuthenticationProvider authProvider;
-    
-    // Explicit constructor to break compilation cycle
-    // public SecurityConfiguration(AuthFilter authFilter, AuthenticationProvider authProvider) {
-    //     this.authFilter = authFilter;
-    //     this.authProvider = authProvider;
-    // }
+  
 
     @Bean // SecurityFilterChain is responsible/config for all the traffic and filters of http of our APP
     public SecurityFilterChain getSecurityFilterChain(HttpSecurity http) throws Exception {
 
-        http.csrf()
-                .disable()
-                .authorizeHttpRequests()
-                .requestMatchers(req->  req.getRequestURI().contains("swagger-ui"))
-                .permitAll()
-                .requestMatchers(req->  req.getRequestURI().contains("api-docs"))
-                .permitAll()
-                .requestMatchers(req->  req.getRequestURI().contains("/auth/login"))
-                .permitAll()
-                .requestMatchers(req->  req.getRequestURI().contains("/user/")).hasAuthority("USER")
-                .requestMatchers(req-> req.getRequestURI().contains("/admin/")).hasAuthority("ADMIN")
-                .anyRequest()
-                .authenticated()
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
+        http.csrf(csrf -> csrf
+                .disable())
+                .authorizeHttpRequests(requests -> requests
+                        .requestMatchers(req -> req.getRequestURI().contains("swagger-ui"))
+                        .permitAll()
+                        .requestMatchers(req -> req.getRequestURI().contains("api-docs"))
+                        .permitAll()
+                        .requestMatchers(req -> req.getRequestURI().contains("/auth/login"))
+                        .permitAll()
+                        .requestMatchers(req -> req.getRequestURI().contains("/user/")).hasAuthority("USER")
+                        .requestMatchers(req -> req.getRequestURI().contains("/admin/")).hasAuthority("ADMIN")
+                        .anyRequest()
+                        .authenticated())
+                .sessionManagement(management -> management
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 //AuthenticationProvider --> Data access object which responsible to fetch user details/encode password etc.
                 // an Authentication request is processed by an AuthenticationProvider,
                 .authenticationProvider(authProvider)

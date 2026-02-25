@@ -31,14 +31,13 @@ public final class Comment {
     @ManyToOne
     @JoinColumn(name = "userId")
     private User userId;
-     //(foreign key)
+
 
 
     // Many comments to one task
     @ManyToOne
     @JoinColumn(name = "taskId")
     private Task taskId;
-     //(foreign key)
 
       public Comment(AdminCreateCommentRequest commentObj){
         this.comment = commentObj.comment();

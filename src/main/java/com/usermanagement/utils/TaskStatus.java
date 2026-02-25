@@ -1,19 +1,21 @@
 package com.usermanagement.utils;
 
-import lombok.Getter;
-
+import java.util.Collections;
 import java.util.Set;
 
-import org.codehaus.plexus.component.annotations.Component;
+import org.springframework.stereotype.Component;
+
+import lombok.Getter;
 
 @Getter
-@Component(role = TaskStatus.class)
+@Component
 public final class TaskStatus {
   private final String PENDING = "PENDING";
   private final String COMPLETED = "COMPLETED";
   private final String ARCHIVED = "ARCHIVED";
-  private final Set<String> statusOptions = Set.of( PENDING,COMPLETED,ARCHIVED);
-  public boolean isValidStatus(String status){
+  private final Set<String> statusOptions = Collections.unmodifiableSet(Set.of(PENDING, COMPLETED, ARCHIVED));
+
+  public boolean isValidStatus(String status) {
     return statusOptions.contains(status.toUpperCase());
   }
 }

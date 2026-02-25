@@ -5,6 +5,7 @@ import com.usermanagement.security.AuthenticationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ActiveProfiles;
 
 /**
  * Integration test to verify that the Spring application context loads successfully.
@@ -12,6 +13,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
  * Mocks AuthenticationService and EntityMapper to avoid requiring full security and MapStruct setup in test.
  */
 @SpringBootTest
+@ActiveProfiles("test")
 class UserManagementApplicationTests {
 
     @MockBean

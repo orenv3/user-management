@@ -14,9 +14,6 @@ import org.mapstruct.*;
 /**
  * Centralized MapStruct mapper for converting between DTOs and entities.
  * This ensures entities are never exposed directly through the API.
- * 
- * MapStruct generates implementation at compile time for optimal performance.
- * All mappings handle null safety and follow best practices.
  */
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface EntityMapper {
@@ -104,33 +101,33 @@ public interface EntityMapper {
      * Maps Task entity to TaskResponse DTO.
      * Flattens the assignee relationship to just the assignee ID.
      */
-    @Mapping(target = "assigneeId", source = "assignee.id")
+    @Mapping(target = "assigneeId", source = "task.assignee.id")
     TaskResponse toTaskResponse(Task task);
 
     /**
      * Maps Comment entity to CommentResponse DTO.
      * Flattens the user and task relationships to just their IDs.
      */
-    @Mapping(target = "userId", source = "userId.id")
-    @Mapping(target = "taskId", source = "taskId.id")
+    @Mapping(target = "userId", source = "comment.userId.id")
+    @Mapping(target = "taskId", source = "comment.taskId.id")
     CommentResponse toCommentResponse(Comment comment);
 
     /**
      * Maps Comment entity to CommentsResponse DTO.
      * Includes task title. Error message defaults to empty string.
      */
-    @Mapping(target = "userId", source = "userId.id")
-    @Mapping(target = "taskId", source = "taskId.id")
-    @Mapping(target = "title", source = "taskId.title")
+    @Mapping(target = "userId", source = "comment.userId.id")
+    @Mapping(target = "taskId", source = "comment.taskId.id")
+    @Mapping(target = "title", source = "comment.taskId.title")
     @Mapping(target = "err", constant = "")
     CommentsResponse toCommentsResponse(Comment comment);
 
     /**
      * Maps Comment entity to CommentsResponse DTO with custom error message.
      */
-    @Mapping(target = "userId", source = "userId.id")
-    @Mapping(target = "taskId", source = "taskId.id")
-    @Mapping(target = "title", source = "taskId.title")
+    @Mapping(target = "userId", source = "comment.userId.id")
+    @Mapping(target = "taskId", source = "comment.taskId.id")
+    @Mapping(target = "title", source = "comment.taskId.title")
     @Mapping(target = "err", source = "errorMessage")
     CommentsResponse toCommentsResponseWithError(Comment comment, String errorMessage);
 
@@ -139,18 +136,18 @@ public interface EntityMapper {
      * Uses snake_case field names as per the record definition.
      * Error message defaults to empty string.
      */
-    @Mapping(target = "task_id", source = "id")
-    @Mapping(target = "task_status", source = "status")
-    @Mapping(target = "task_assignee", source = "assignee.id")
+    @Mapping(target = "task_id", source = "task.id")
+    @Mapping(target = "task_status", source = "task.status")
+    @Mapping(target = "task_assignee", source = "task.assignee.id")
     @Mapping(target = "err", constant = "")
     TaskTableResponse toTaskTableResponse(Task task);
 
     /**
      * Maps Task entity to TaskTableResponse DTO with custom error message.
      */
-    @Mapping(target = "task_id", source = "id")
-    @Mapping(target = "task_status", source = "status")
-    @Mapping(target = "task_assignee", source = "assignee.id")
+    @Mapping(target = "task_id", source = "task.id")
+    @Mapping(target = "task_status", source = "task.status")
+    @Mapping(target = "task_assignee", source = "task.assignee.id")
     @Mapping(target = "err", source = "errorMessage")
     TaskTableResponse toTaskTableResponseWithError(Task task, String errorMessage);
 
@@ -181,4 +178,3 @@ public interface EntityMapper {
      */
     java.util.List<TaskTableResponse> toTaskTableResponseList(java.util.List<Task> tasks);
 }
-

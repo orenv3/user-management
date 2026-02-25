@@ -1,4 +1,4 @@
-package com.usermanagement.dao.services;
+package com.usermanagement.services;
 
 import com.usermanagement.entities.User;
 import com.usermanagement.mappers.EntityMapper;
