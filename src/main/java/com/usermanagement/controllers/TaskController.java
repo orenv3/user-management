@@ -12,6 +12,10 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,12 +31,9 @@ import java.util.List;
 @RestController
 public class TaskController {
 
+    private static final Logger log = LoggerFactory.getLogger(TaskController.class);
+
     private final TaskService taskService;
-    
-    // Explicit constructor to break compilation cycle
-    // public TaskController(TaskService taskService) {
-    //     this.taskService = taskService;
-    // }
 
     /**
      * Admin privilege
@@ -42,6 +43,7 @@ public class TaskController {
      */
     @PostMapping("admin/createTask")
     public TaskResponse create(@Valid @RequestBody() CreateTaskRequest taskObj) throws TaskGeneralErrorException {
+        logRequest("createTask", "title=" + taskObj.title());
         return taskService.createTask(taskObj);
     }
 
@@ -53,6 +55,7 @@ public class TaskController {
      */
     @DeleteMapping("admin/deleteTask/{id}")
     public String delete(@NotNull @PathVariable("id") long id) {
+        logRequest("deleteTask", "id=" + id);
         return taskService.deleteTask(id);
     }
 
@@ -64,6 +67,7 @@ public class TaskController {
      */
     @PutMapping("admin/updateTask")
     public TaskResponse update(@Valid @RequestBody() UpdateTaskRequest taskObj) throws TaskGeneralErrorException {
+        logRequest("updateTask", "id=" + taskObj.id());
         return taskService.updateTask(taskObj);
     }
 
@@ -74,6 +78,7 @@ public class TaskController {
      */
     @GetMapping("admin/allTaskList")
     public List<TaskResponse> getAllTaskList(){
+        logRequest("allTaskList", null);
         return taskService.getAllTaskList();
     }
 
@@ -84,6 +89,7 @@ public class TaskController {
      */
     @GetMapping("admin/allTaskListWithPagination")
     public List<TaskResponse> getAllTaskListWithPagination(@NotNull int pageNo, @NotNull int pageSize){
+        logRequest("allTaskListWithPagination", "pageNo=" + pageNo + ", pageSize=" + pageSize);
         return taskService.getAllTaskListWithPageRequest(pageNo,pageSize);
     }
 
@@ -96,6 +102,7 @@ public class TaskController {
      */
     @PutMapping("admin/assignUser{taskId}/{userId}")
     public TaskTableResponse assignUserToTask(@PathVariable("taskId") long taskId, @PathVariable("userId") long userId){
+        logRequest("assignUserToTask", "taskId=" + taskId + ", userId=" + userId);
         return taskService.assignUserToTask(taskId,userId);
     }
 
@@ -107,6 +114,7 @@ public class TaskController {
      */
     @PutMapping("admin/removeUserFromTask/{taskId}")
     public TaskTableResponse removeUserFromTask(@PathVariable("taskId") long taskId){
+        logRequest("removeUserFromTask", "taskId=" + taskId);
         return taskService.unassignUserFromTask(taskId);
     }
 
@@ -122,6 +130,7 @@ public class TaskController {
      */
     @GetMapping("user/allTaskList/{assignee}")
     public List<TaskTableResponse> getAllUserTaskList(@PathVariable("assignee") @Min(1) long assignee){
+        logRequest("allUserTaskList", "assignee=" + assignee);
         return taskService.getAllUserTaskList(assignee);
     }
 
@@ -133,8 +142,19 @@ public class TaskController {
      */
     @PutMapping("user/updateComplete")
     public String setTaskComplete(Long taskId) {
+        logRequest("setTaskComplete", "taskId=" + taskId);
         return taskService.setTaskComplete(taskId);
     }
 
+    private static void logRequest(String action, String details) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String principal = auth == null ? "anonymous" : String.valueOf(auth.getName());
+        Object authorities = auth == null ? "[]" : auth.getAuthorities();
+        if (details == null || details.isBlank()) {
+            log.info("TaskController action={} principal={} authorities={}", action, principal, authorities);
+        } else {
+            log.info("TaskController action={} principal={} authorities={} details={}", action, principal, authorities, details);
+        }
+    }
 
 }

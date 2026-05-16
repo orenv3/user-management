@@ -1,6 +1,6 @@
 package com.usermanagement.repositories;
 
-import com.usermanagement.entities.User;
+import com.usermanagement.entities.Users;
 import com.usermanagement.requestObjects.CreateUserRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,11 +27,11 @@ class UserRepoTest {
                 "oren", "email1",
                 true, true,
                 "pass");
-        User user = new User(userRequest);
+        Users user = new Users(userRequest);
 
         // When
         user = userRepoUnderTest.save(user);
-        Optional<User> expected = userRepoUnderTest.findByEmail(user.getEmail());
+        Optional<Users> expected = userRepoUnderTest.findByEmail(user.getEmail());
 
         // Then
         assertTrue(expected.isPresent());
@@ -47,12 +47,12 @@ class UserRepoTest {
                 "oren", "email1",
                 true, true,
                 "pass");
-        User user = new User(userRequest);
+        Users user = new Users(userRequest);
 
         // When
         user = userRepoUnderTest.save(user);
-        Optional<User> exists = userRepoUnderTest.findByEmail(user.getEmail());
-        Optional<User> empty = userRepoUnderTest.findByEmail("noSuchEmail@.gogo.com");
+        Optional<Users> exists = userRepoUnderTest.findByEmail(user.getEmail());
+        Optional<Users> empty = userRepoUnderTest.findByEmail("noSuchEmail@.gogo.com");
 
         // Then
         assertTrue(exists.isPresent());

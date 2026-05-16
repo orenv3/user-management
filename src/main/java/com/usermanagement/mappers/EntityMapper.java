@@ -2,7 +2,7 @@ package com.usermanagement.mappers;
 
 import com.usermanagement.entities.Comment;
 import com.usermanagement.entities.Task;
-import com.usermanagement.entities.User;
+import com.usermanagement.entities.Users;
 import com.usermanagement.requestObjects.*;
 import com.usermanagement.responseObjects.CommentResponse;
 import com.usermanagement.responseObjects.CommentsResponse;
@@ -26,9 +26,13 @@ public interface EntityMapper {
     /**
      * Maps CreateUserRequest to User entity.
      */
+    // @Mapping(target = "role", ignore = true)
+    // @Mapping(target = "password", ignore = true)
+    // @Mapping(target = "active", ignore = true)
+    // @Mapping(target = "isAdmin", ignore = true) @Mapping(target = "id", ignore = true)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "role", ignore = true)
-    User toEntity(CreateUserRequest request);
+    Users toEntity(CreateUserRequest request);
 
     /**
      * Maps CreateTaskRequest to Task entity.
@@ -68,7 +72,8 @@ public interface EntityMapper {
     @Mapping(target = "name", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "email", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "password", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateUserFromRequest(UpdateUserRequest request, @MappingTarget User user);
+    @Mapping(target = "active", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateUserFromRequest(UpdateUserRequest request, @MappingTarget Users user);
 
     /**
      * Updates Task entity with values from UpdateTaskRequest.
@@ -98,39 +103,39 @@ public interface EntityMapper {
      * Maps User entity to UserResponse DTO.
      * Excludes sensitive information like password.
      */
-    UserResponse toUserResponse(User user);
+    UserResponse toUserResponse(Users user);
 
     /**
      * Maps Task entity to TaskResponse DTO.
      * Flattens the assignee relationship to just the assignee ID.
      */
-    @Mapping(target = "assigneeId", source = "assignee.id")
+    @Mapping(target = "assigneeId", source = "task.assignee.id")
     TaskResponse toTaskResponse(Task task);
 
     /**
      * Maps Comment entity to CommentResponse DTO.
      * Flattens the user and task relationships to just their IDs.
      */
-    @Mapping(target = "userId", source = "userId.id")
-    @Mapping(target = "taskId", source = "taskId.id")
+    @Mapping(target = "userId", source = "comment.userId.id")
+    @Mapping(target = "taskId", source = "comment.taskId.id")
     CommentResponse toCommentResponse(Comment comment);
 
     /**
      * Maps Comment entity to CommentsResponse DTO.
      * Includes task title. Error message defaults to empty string.
      */
-    @Mapping(target = "userId", source = "userId.id")
-    @Mapping(target = "taskId", source = "taskId.id")
-    @Mapping(target = "title", source = "taskId.title")
+    @Mapping(target = "userId", source = "comment.userId.id")
+    @Mapping(target = "taskId", source = "comment.taskId.id")
+    @Mapping(target = "title", source = "comment.taskId.title")
     @Mapping(target = "err", constant = "")
     CommentsResponse toCommentsResponse(Comment comment);
 
     /**
      * Maps Comment entity to CommentsResponse DTO with custom error message.
      */
-    @Mapping(target = "userId", source = "userId.id")
-    @Mapping(target = "taskId", source = "taskId.id")
-    @Mapping(target = "title", source = "taskId.title")
+    @Mapping(target = "userId", source = "comment.userId.id")
+    @Mapping(target = "taskId", source = "comment.taskId.id")
+    @Mapping(target = "title", source = "comment.taskId.title")
     @Mapping(target = "err", source = "errorMessage")
     CommentsResponse toCommentsResponseWithError(Comment comment, String errorMessage);
 
@@ -139,18 +144,22 @@ public interface EntityMapper {
      * Uses snake_case field names as per the record definition.
      * Error message defaults to empty string.
      */
-    @Mapping(target = "task_id", source = "id")
-    @Mapping(target = "task_status", source = "status")
-    @Mapping(target = "task_assignee", source = "assignee.id")
+    @Mapping(target = "task_id", source = "task.id")
+    @Mapping(target = "task_title", source = "task.title")
+    @Mapping(target = "task_description", source = "task.description")
+    @Mapping(target = "task_status", source = "task.status")
+    @Mapping(target = "task_assignee", source = "task.assignee.id")
     @Mapping(target = "err", constant = "")
     TaskTableResponse toTaskTableResponse(Task task);
 
     /**
      * Maps Task entity to TaskTableResponse DTO with custom error message.
      */
-    @Mapping(target = "task_id", source = "id")
-    @Mapping(target = "task_status", source = "status")
-    @Mapping(target = "task_assignee", source = "assignee.id")
+    @Mapping(target = "task_id", source = "task.id")
+    @Mapping(target = "task_status", source = "task.status")
+    @Mapping(target = "task_assignee", source = "task.assignee.id")
+    @Mapping(target = "task_title", source = "task.title")
+    @Mapping(target = "task_description", source = "task.description")
     @Mapping(target = "err", source = "errorMessage")
     TaskTableResponse toTaskTableResponseWithError(Task task, String errorMessage);
 
@@ -159,7 +168,7 @@ public interface EntityMapper {
     /**
      * Maps list of Users to list of UserResponse DTOs.
      */
-    java.util.List<UserResponse> toUserResponseList(java.util.List<User> users);
+    java.util.List<UserResponse> toUserResponseList(java.util.List<Users> users);
 
     /**
      * Maps list of Tasks to list of TaskResponse DTOs.

@@ -1,0 +1,38 @@
+---
+description: New or changed Java production code requires tests, consistent design, and sensible performance
+globs: src/main/java/**/*.java
+alwaysApply: false
+---
+
+# Production Java — tests, design, performance
+
+When **adding or materially changing** methods (not comment-only or pure renames), treat the task as incomplete until tests and quality match the repo.
+
+## Tests (required)
+
+- **Services / security / mappers / non-trivial helpers**: add or extend **unit tests** with Mockito (`UserServiceTest`, `TaskServiceTest`, `AuthenticationServiceTest` patterns).
+- **Repositories / JPA queries**: use **`@DataJpaTest`** (`UserRepoTest`, `TaskRepoTest`, `CommentRepoTest`); prefer entities returned from `save()` over assuming fixed IDs with `getReferenceById`.
+- **HTTP + security + multi-bean flows**: use **`@SpringBootTest` + `@AutoConfigureMockMvc`** and `@ActiveProfiles("test")` (`ApplicationApiIntegrationTest`). Do not rely on the main `CommandLineRunner` in tests (`spring.profiles.active=test` in test resources).
+- Name tests for behavior; assert outcomes, not implementation details unless necessary.
+
+```java
+// ❌ New public method on a @Service with no test update
+public void reassignTask(long id, long userId) { ... }
+
+// ✅ Same change + TaskServiceTest (or integration) covering success + error paths
+```
+
+## Design
+
+- Keep **controllers thin**; business rules live in **services**. Reuse existing DTOs, mappers (`EntityMapper`), and exception types (`*GeneralErrorException`, `UserValidationErrorException`).
+- **Constructor injection** only; avoid widening visibility “for tests.” Match existing naming and packages under `com.usermanagement`.
+
+## Performance
+
+- Avoid **N+1** or repeated repository calls in loops; prefer batch queries or existing pagination APIs where the codebase already uses them.
+- Do not add heavy synchronous work in request paths without justification.
+
+## Exceptions
+
+- **Trivial edits** (formatting, typo in log message): tests unchanged unless behavior changes.
+- If full-stack coverage already exists for the path, prefer **narrow unit tests** for new branches rather than duplicating large integration tests.

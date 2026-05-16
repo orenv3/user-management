@@ -1,7 +1,7 @@
 package com.usermanagement.configurations;
 
 import com.usermanagement.utils.Role;
-import com.usermanagement.entities.User;
+import com.usermanagement.entities.Users;
 import com.usermanagement.errorHandler.GeneralExceptionHandler;
 import com.usermanagement.repositories.UserRepo;
 import io.swagger.v3.oas.models.Components;
@@ -9,6 +9,8 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
@@ -39,25 +41,24 @@ import java.util.Optional;
 @Configuration
 public class UserManagementConfiguration {
 
+    private static final Logger log = LoggerFactory.getLogger(UserManagementConfiguration.class);
 
 private final UserRepo userRepo;
-
-    // Explicit constructor to break compilation cycle
-    // public UserManagementConfiguration(UserRepo userRepo) {
-    //     this.userRepo = userRepo;
-    // }
 
     @Bean
     public UserDetailsService getUserDetailsService(){
         UserDetailsService userDetailsService = new UserDetailsService() {
+           
             @Override
             public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-                Optional<User> user =  userRepo.findByEmail(username);
-                User curr=null;
+                Optional<Users> user =  userRepo.findByEmail(username);
+                Users curr=null;
                 if(user.isPresent()){
                      curr = user.get();
                     curr.setRole(Role.chooseRole(curr.isAdmin()));
+                    log.info("Loaded userDetails. email={} role={} authorities={}", curr.getEmail(), curr.getRole(), curr.getAuthorities());
                 }else{
+                    log.warn("UserDetails not found for email={}", username);
                     throw new UsernameNotFoundException("The user: "+username+" not found");
                 }
 
@@ -87,7 +88,10 @@ private final UserRepo userRepo;
 
     @AfterReturning(value = "execution(* com.usermanagement.controllers..*.*(..))", returning = "returningObject")
     public void afterEachPrintOutDbObject(JoinPoint join, Object returningObject){
-        System.out.println("Object from DB: " + returningObject);
+        log.debug("Controller returned. signature={} returnType={} value={}",
+                join.getSignature().toShortString(),
+                returningObject == null ? "null" : returningObject.getClass().getSimpleName(),
+                returningObject);
     }
 
     @Bean

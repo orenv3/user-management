@@ -3,6 +3,7 @@ package com.usermanagement.entities;
 import com.usermanagement.requestObjects.CreateUserRequest;
 import com.usermanagement.utils.Role;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -13,12 +14,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
-
+@AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Entity
-@Table(name = "user")
-public final class User implements UserDetails {
+@Table(name = "users")
+public final class Users implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,10 +32,10 @@ public final class User implements UserDetails {
     private String email;
 
     @Column
-    private boolean isAdmin;
+    private Boolean isAdmin;
 
     @Column
-    private boolean active;
+    private Boolean active;
 
     @Column
     private String password;
@@ -64,7 +65,7 @@ public final class User implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return isActive();
+        return active;
     }
 
     @Override
@@ -74,10 +75,10 @@ public final class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return isActive();
+        return active;
     }
 
-    public User(CreateUserRequest createUserRequest){
+    public Users(CreateUserRequest createUserRequest){
     this.active = createUserRequest.active();
     this.email =createUserRequest.email();
     this.isAdmin = createUserRequest.isAdmin();
@@ -85,4 +86,12 @@ public final class User implements UserDetails {
     this.password = createUserRequest.password();
 
 }
+
+    public Boolean isAdmin() {
+   return isAdmin;
+    }
+
+    public void setAdmin(Boolean admin) {
+        this.isAdmin = admin;
+    }
 }

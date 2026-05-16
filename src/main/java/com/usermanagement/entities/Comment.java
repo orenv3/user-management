@@ -30,7 +30,7 @@ public final class Comment {
     // Many tasks to one user
     @ManyToOne
     @JoinColumn(name = "userId")
-    private User userId;
+    private Users userId;
      //(foreign key)
 
 

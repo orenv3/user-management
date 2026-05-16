@@ -1,6 +1,6 @@
 package com.usermanagement.requestObjects;
 
-import com.usermanagement.entities.User;
+import com.usermanagement.entities.Users;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -13,11 +13,11 @@ public record UpdateUserRequest(
         @NotNull @Min(2) Long id,
         @Size(max = 15) String name,
         String email,
-        boolean isAdmin,
-        boolean active,
+        Boolean isAdmin,
+        Boolean active,
         String password){
 
-    public User updateUserParameters(UpdateUserRequest updateObj, User user){
+    public Users updateUserParameters(UpdateUserRequest updateObj, Users user){
 
         if(updateObj.isName())
             user.setName(updateObj.name());

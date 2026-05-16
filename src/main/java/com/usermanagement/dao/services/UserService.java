@@ -1,12 +1,14 @@
 package com.usermanagement.dao.services;
 
-import com.usermanagement.entities.User;
+import com.usermanagement.entities.Users;
 import com.usermanagement.mappers.EntityMapper;
 import com.usermanagement.repositories.UserRepo;
 import com.usermanagement.requestObjects.UpdateUserRequest;
 import com.usermanagement.responseObjects.UserResponse;
 
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -14,52 +16,54 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
-@NoArgsConstructor
+@RequiredArgsConstructor
 @Service("AdminUserImpl")
 public class UserService {
 
-    private UserRepo userRepo;
-    private EntityMapper entityMapper;
-   
-    public UserService(UserRepo userRepo, EntityMapper entityMapper){
-        this.userRepo = userRepo;
-        this.entityMapper = entityMapper;
-    }
-    public UserService(UserRepo userRepo){
-        this.userRepo = userRepo;
-    }
-    public UserService(EntityMapper entityMapper){
-        this.entityMapper = entityMapper;
-    }
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
+
+    private final UserRepo userRepo;
+    private final EntityMapper entityMapper;
 
     public UserResponse updateUser(UpdateUserRequest updateObj){
-        User user = userRepo.getReferenceById(updateObj.id());
+        log.info("Update user requested. id={}", updateObj.id());
+        Users user = userRepo.getReferenceById(updateObj.id());
         entityMapper.updateUserFromRequest(updateObj, user);
-        User savedUser =  userRepo.save(user);
+        Users savedUser =  userRepo.save(user);
+        log.info("User updated. id={} email={}", savedUser.getId(), savedUser.getEmail());
         return entityMapper.toUserResponse(savedUser);
     }
 
     public String deleteUser(long id){
+        log.info("Delete user requested. id={}", id);
         // User user = userRepo.getReferenceById(id);
         userRepo.deleteById(id);
-        return "Deleted: "+!(userRepo.existsById(id));
+        boolean deleted = !(userRepo.existsById(id));
+        log.info("Delete user result. id={} deleted={}", id, deleted);
+        return "Deleted: " + deleted;
     }
 
 
     public List<UserResponse> getAllUserList(){
-        List<User> usersList = userRepo.findAll();
+        log.info("Get all users requested.");
+        List<Users> usersList = userRepo.findAll();
+        log.info("Get all users result count={}", usersList.size());
         return entityMapper.toUserResponseList(usersList);
     }
 
     public List<UserResponse> getAllUserListWithPageRequest(int pageNo, int pageSize){
+        log.info("Get users page requested. pageNo={} pageSize={}", pageNo, pageSize);
         Pageable pageable =  PageRequest.of(pageNo-1,pageSize);
-        return entityMapper.toUserResponseList(userRepo.findAll(pageable).getContent());
+        List<Users> content = userRepo.findAll(pageable).getContent();
+        log.info("Get users page result count={}", content.size());
+        return entityMapper.toUserResponseList(content);
     }
 
-    public User getUserById(long id){
+    public Users getUserById(long id){
+        log.debug("Get user by id requested. id={}", id);
         return userRepo.getReferenceById(id);
     }
-    public Optional<User> findUserByEmail(String email){
+    public Optional<Users> findUserByEmail(String email){
         return userRepo.findByEmail(email);
     }
 }

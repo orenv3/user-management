@@ -1,7 +1,10 @@
 package com.usermanagement.configurations;
 
 import com.usermanagement.security.AuthFilter;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -16,20 +19,36 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 public class SecurityConfiguration {
 
+    private static final Logger log = LoggerFactory.getLogger(SecurityConfiguration.class);
+
     private final AuthFilter authFilter;
     private final AuthenticationProvider authProvider;
-    
-    // Explicit constructor to break compilation cycle
-    // public SecurityConfiguration(AuthFilter authFilter, AuthenticationProvider authProvider) {
-    //     this.authFilter = authFilter;
-    //     this.authProvider = authProvider;
-    // }
 
     @Bean // SecurityFilterChain is responsible/config for all the traffic and filters of http of our APP
     public SecurityFilterChain getSecurityFilterChain(HttpSecurity http) throws Exception {
 
         http.csrf()
                 .disable()
+                .exceptionHandling(exceptionHandling -> exceptionHandling
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            log.warn(
+                                    "Unauthorized request (401). method={} uri={} message={}",
+                                    request.getMethod(),
+                                    request.getRequestURI(),
+                                    safeMessage(authException)
+                            );
+                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            log.warn(
+                                    "Access denied (403). method={} uri={} message={}",
+                                    request.getMethod(),
+                                    request.getRequestURI(),
+                                    safeMessage(accessDeniedException)
+                            );
+                            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden");
+                        })
+                )
                 .authorizeHttpRequests()
                 .requestMatchers(req->  req.getRequestURI().contains("swagger-ui"))
                 .permitAll()
@@ -53,5 +72,13 @@ public class SecurityConfiguration {
 
 
         return http.build();
+    }
+
+    private static String safeMessage(Exception ex) {
+        String msg = ex.getMessage();
+        if (msg == null || msg.isBlank()) {
+            return ex.getClass().getSimpleName();
+        }
+        return msg;
     }
 }

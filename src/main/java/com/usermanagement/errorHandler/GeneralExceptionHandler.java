@@ -23,9 +23,13 @@ import org.springframework.web.context.request.async.AsyncRequestTimeoutExceptio
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ControllerAdvice
 public class GeneralExceptionHandler extends ResponseEntityExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(GeneralExceptionHandler.class);
+
     public GeneralExceptionHandler() {
         super();
     }
@@ -43,16 +47,19 @@ public class GeneralExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({ UserValidationErrorException.class })
     protected ResponseEntity<Object> handleValidationErrorException(Exception e, WebRequest request) {
+        log.warn("User validation error. message={}", e.getMessage());
         return  ResponseEntity.ok(e.getMessage());
     }
 
     @ExceptionHandler({ TaskGeneralErrorException.class })
     protected ResponseEntity<Object> handleTaskGeneralErrorException(Exception e, WebRequest request) {
+        log.warn("Task error. message={}", e.getMessage());
         return  ResponseEntity.ok(e.getMessage());
     }
 
     @ExceptionHandler({ CommentGeneralErrorException.class })
     protected ResponseEntity<Object> handleCommentGeneralErrorException(Exception e, WebRequest request) {
+        log.warn("Comment error. message={}", e.getMessage());
         return  ResponseEntity.ok(e.getMessage());
     }
     @Override

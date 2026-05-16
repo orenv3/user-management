@@ -1,6 +1,6 @@
 package com.usermanagement.dao.services;
 
-import com.usermanagement.entities.User;
+import com.usermanagement.entities.Users;
 import com.usermanagement.mappers.EntityMapper;
 import com.usermanagement.repositories.UserRepo;
 import com.usermanagement.requestObjects.CreateUserRequest;
@@ -44,27 +44,27 @@ class UserServiceTest {
         when(userRepo.existsById(3L)).thenReturn(false);
         
         // Mock EntityMapper to return UserResponse for any User
-        when(entityMapper.toUserResponse(any(User.class))).thenAnswer(invocation -> {
-            User user = invocation.getArgument(0);
+        when(entityMapper.toUserResponse(any(Users.class))).thenAnswer(invocation -> {
+            Users user = invocation.getArgument(0);
             return new UserResponse(
                     user.getId(),
                     user.getName(),
                     user.getEmail(),
                     user.isAdmin(),
-                    user.isActive()
+                    user.getActive()
             );
         });
         
         // Mock list mapping for getAllUserList
         when(entityMapper.toUserResponseList(anyList())).thenAnswer(invocation -> {
-            List<User> users = invocation.getArgument(0);
+            List<Users> users = invocation.getArgument(0);
             return users.stream()
                     .map(user -> new UserResponse(
                             user.getId(),
                             user.getName(),
                             user.getEmail(),
                             user.isAdmin(),
-                            user.isActive()
+                            user.getActive()
                     ))
                     .toList();
         });
@@ -87,8 +87,8 @@ class UserServiceTest {
                 true,
                 null
         );
-        User existingUser = getUserPrivilge();
-        User updatedUser = new User(new CreateUserRequest(
+        Users existingUser = getUserPrivilge();
+        Users updatedUser = new Users(new CreateUserRequest(
                 updateRequest.name(),
                 updateRequest.email(),
                 updateRequest.isAdmin(),
@@ -98,7 +98,7 @@ class UserServiceTest {
         updatedUser.setId(userId);
 
         when(userRepo.getReferenceById(userId)).thenReturn(existingUser);
-        when(userRepo.save(any(User.class))).thenReturn(updatedUser);
+        when(userRepo.save(any(Users.class))).thenReturn(updatedUser);
         
         UserResponse expectedResponse = new UserResponse(
                 userId,
@@ -114,7 +114,7 @@ class UserServiceTest {
 
         // Then
         verify(userRepo).getReferenceById(userId);
-        verify(userRepo).save(any(User.class));
+        verify(userRepo).save(any(Users.class));
         assertThat(result).isNotNull();
         assertThat(result.id()).isEqualTo(userId);
         assertThat(result.name()).isEqualTo(updateRequest.name());
@@ -147,7 +147,7 @@ class UserServiceTest {
         long userId = 3L;
 
         // When
-        User userUnderTest = userServiceUnderTest.getUserById(userId);
+        Users userUnderTest = userServiceUnderTest.getUserById(userId);
 
         // Then
         verify(userRepo).getReferenceById(userId);
@@ -159,11 +159,11 @@ class UserServiceTest {
     void findUserByEmail() {
         // Given
         long userId = 3L;
-        User userUnderTest = userServiceUnderTest.getUserById(userId);
+        Users userUnderTest = userServiceUnderTest.getUserById(userId);
         String emailUnderTest = userUnderTest.getEmail();
 
         // When
-        Optional<User> foundUser = userServiceUnderTest.findUserByEmail(emailUnderTest);
+        Optional<Users> foundUser = userServiceUnderTest.findUserByEmail(emailUnderTest);
 
         // Then
         verify(userRepo).getReferenceById(userId);
@@ -191,52 +191,52 @@ class UserServiceTest {
     /**
      * Helper methods to create test data.
      */
-    private List<User> getUserList() {
+    private List<Users> getUserList() {
         CreateUserRequest userRequest1 = new CreateUserRequest(
                 "oren", "oren@email1",
                 true, true,
                 "pass");
-        User user1 = new User(userRequest1);
+        Users user1 = new Users(userRequest1);
         user1.setId(1L);
 
         CreateUserRequest userRequest2 = new CreateUserRequest(
                 "avivit", "avivit@email1",
                 true, true,
                 "pass");
-        User user2 = new User(userRequest2);
+        Users user2 = new Users(userRequest2);
         user2.setId(2L);
 
         CreateUserRequest userRequest3 = new CreateUserRequest(
                 "maya", "maya@email1",
                 false, true,
                 "pass");
-        User user3 = new User(userRequest3);
+        Users user3 = new Users(userRequest3);
         user3.setId(3L);
 
         CreateUserRequest userRequest4 = new CreateUserRequest(
                 "Daniel", "Daniel@email1",
                 false, true,
                 "pass");
-        User user4 = new User(userRequest4);
+        Users user4 = new Users(userRequest4);
         user4.setId(4L);
 
         CreateUserRequest userRequest5 = new CreateUserRequest(
                 "raz", "raz@email1",
                 false, true,
                 "pass");
-        User user5 = new User(userRequest5);
+        Users user5 = new Users(userRequest5);
         user5.setId(5L);
 
         return List.of(user1, user2, user3, user4, user5);
     }
 
-    private User getUserPrivilge() {
+    private Users getUserPrivilge() {
         CreateUserRequest userRequest3 = new CreateUserRequest(
                 "maya", "maya@email1",
                 false, true,
                 "pass");
 
-        User user = new User(userRequest3);
+        Users user = new Users(userRequest3);
         user.setId(3L);
         return user;
     }

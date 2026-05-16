@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:latest
+    container_name: postgres-db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=user_management_db
+    ports:
+      - "5432:5432"
+    # volumes:
+    #   - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      - LOG_PATH=/logs
+    volumes:
+      - ./logs:/logs
+    # environment:
+    #   # - SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/user_management_db
+    #   - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/user_management_db
+    #   - SPRING_DATASOURCE_USERNAME=postgres
+    #   - SPRING_DATASOURCE_PASSWORD=admin
+      
+
+# volumes:
+#   postgres_data:

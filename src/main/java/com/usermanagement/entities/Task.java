@@ -29,7 +29,7 @@ public final class Task {
     // Many tasks to one user
     @ManyToOne
     @JoinColumn(name = "assignee")
-    private User assignee;
+    private Users assignee;
 
     public Task(CreateTaskRequest taskObj){
         this.description = taskObj.description();

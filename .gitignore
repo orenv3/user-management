@@ -18,6 +18,9 @@
 # Local configuration that shouldn't be shared
 *.local
 
+### Application logs (Docker bind mount) ###
+logs/
+
 ### H2 Database Files ###
 *.mv.db
 *.trace.db

@@ -10,6 +10,10 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,13 +29,10 @@ import java.util.List;
 @RestController
 public class CommentController {
 
+    private static final Logger log = LoggerFactory.getLogger(CommentController.class);
+
     private final CommentService commentService;
     
-    // Explicit constructor to break compilation cycle
-    // public CommentController(CommentService commentService) {
-    //     this.commentService = commentService;
-    // }
-
     /**
      * Admin privilege
      * Create comment -  comment on any task that belong to user
@@ -40,6 +41,7 @@ public class CommentController {
      */
     @PostMapping("admin/createComment")
     public CommentResponse create(@Valid @RequestBody() AdminCreateCommentRequest commentObj) {
+        logRequest("createComment", "taskId=" + commentObj.taskId());
         return commentService.createComment(commentObj);
     }
 
@@ -51,6 +53,7 @@ public class CommentController {
      */
     @PutMapping("admin/updateComment")
     public CommentResponse update(@Valid @RequestBody() UpdateCommentRequest commentObj) {
+        logRequest("updateComment", "id=" + commentObj.id());
         return commentService.updateComment(commentObj);
     }
 
@@ -60,6 +63,7 @@ public class CommentController {
  */
     @GetMapping("admin/allCommentList")
     public List<CommentResponse> getAllCommentList(){
+        logRequest("allCommentList", null);
         return commentService.getAllCommentList();
     }
 
@@ -72,6 +76,7 @@ public class CommentController {
      */
     @PostMapping("user/commentMyTask")
     public CommentsResponse userCommentOnTask(@Valid @RequestBody() UserTaskCommentRequest commentObj) {
+        logRequest("commentMyTask", "taskId=" + commentObj.taskId() + ", userId=" + commentObj.userId());
         return commentService.userCommentOnTask(commentObj);
     }
 
@@ -85,12 +90,25 @@ public class CommentController {
      */
     @GetMapping("user/userCommentList/{userId}")
     public List<CommentsResponse> getAllUserCommentList( @PathVariable("userId") long userId){
+        logRequest("userCommentList", "userId=" + userId);
         return commentService.getAllUserCommentList(userId);
     }
 
     @GetMapping("user/userCommentListViaNativeQuery/{userId}")
     public List<CommentsResponse> getAllUserCommentListViaNativeQuery( @PathVariable("userId") long userId){
+        logRequest("userCommentListViaNativeQuery", "userId=" + userId);
         return commentService.getAllUserCommentListViaNativeQuery(userId);
+    }
+
+    private static void logRequest(String action, String details) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String principal = auth == null ? "anonymous" : String.valueOf(auth.getName());
+        Object authorities = auth == null ? "[]" : auth.getAuthorities();
+        if (details == null || details.isBlank()) {
+            log.info("CommentController action={} principal={} authorities={}", action, principal, authorities);
+        } else {
+            log.info("CommentController action={} principal={} authorities={} details={}", action, principal, authorities, details);
+        }
     }
 
 

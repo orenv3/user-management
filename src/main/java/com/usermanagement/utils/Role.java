@@ -4,7 +4,7 @@ public enum Role {
     USER,
     ADMIN;
 
-    public static Role chooseRole(boolean isAdmin){
+    public static Role chooseRole(Boolean isAdmin){
         if(isAdmin)
             return ADMIN;
         return USER;
