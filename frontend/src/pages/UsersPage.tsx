@@ -10,6 +10,7 @@ import { Field, btnPrimary, btnSecondary, inputClass } from "../components/Field
 import PageSection from "../components/PageSection";
 import ResultPanel from "../components/ResultPanel";
 import { useAction } from "../hooks/useAction";
+import { filterPrivateAdminUsers } from "../utils/redactSensitiveInResults";
 
 export default function UsersPage() {
   const [users, setUsers] = useState<UserResponse[]>([]);
@@ -37,21 +38,29 @@ export default function UsersPage() {
 
   const [delId, setDelId] = useState("");
 
+  const applyUserList = useCallback((data: UserResponse[]) => {
+    setUsers(filterPrivateAdminUsers(data));
+  }, []);
+
   const loadAll = useCallback(async () => {
     const data = await listAction.run(() => apiGet<UserResponse[]>("/api/userTable/admin/allUserList"));
-    setUsers(data as UserResponse[]);
-  }, [listAction]);
+    applyUserList(data as UserResponse[]);
+  }, [listAction, applyUserList]);
 
   useEffect(() => {
     apiGet<UserResponse[]>("/api/userTable/admin/allUserList")
-      .then(setUsers)
+      .then(applyUserList)
       .catch(() => {});
-  }, []);
+  }, [applyUserList]);
 
   const userColumns = [
     { key: "id", header: "ID", render: (u: UserResponse) => u.id },
     { key: "name", header: "Name", render: (u: UserResponse) => u.name },
-    { key: "email", header: "Email", render: (u: UserResponse) => u.email },
+    {
+      key: "email",
+      header: "Email",
+      render: (u: UserResponse) => u.email,
+    },
     { key: "admin", header: "Admin", render: (u: UserResponse) => (u.isAdmin ? "yes" : "no") },
     { key: "active", header: "Active", render: (u: UserResponse) => (u.active ? "yes" : "no") },
   ];

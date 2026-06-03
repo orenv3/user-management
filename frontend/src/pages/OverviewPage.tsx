@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import PageSection from "../components/PageSection";
+import { displayEmail } from "../utils/redactSensitiveInResults";
 
 export default function OverviewPage() {
   const { me } = useAuth();
@@ -28,7 +29,7 @@ export default function OverviewPage() {
             <dt className="text-slate-400">User ID</dt>
             <dd className="text-slate-100">{me.userId}</dd>
             <dt className="text-slate-400">Email</dt>
-            <dd className="text-slate-100">{me.email}</dd>
+            <dd className="text-slate-100">{displayEmail(me.email)}</dd>
             <dt className="text-slate-400">Role</dt>
             <dd className="text-slate-100">{me.role}</dd>
           </dl>

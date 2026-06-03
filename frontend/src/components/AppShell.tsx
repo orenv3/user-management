@@ -1,5 +1,6 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
+import { displayEmail } from "../utils/redactSensitiveInResults";
 
 const adminLinks = [
   { to: "/", label: "Overview" },
@@ -51,7 +52,7 @@ export default function AppShell() {
           <div className="text-xs text-slate-400 min-w-0">
             {me ? (
               <>
-                Signed in as <span className="text-slate-200">{me.email}</span> ({me.role})
+                Signed in as <span className="text-slate-200">{displayEmail(me.email)}</span> ({me.role})
               </>
             ) : (
               "Loading session..."

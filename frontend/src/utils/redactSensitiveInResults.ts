@@ -1,5 +1,24 @@
 const PRIVATE_EMAIL = import.meta.env.VITE_PRIVATE_ADMIN_EMAIL as string | undefined;
 
+export const PRIVATE_ADMIN_LABEL = "[private admin]";
+
+export function isPrivateAdminEmail(email: string | null | undefined): boolean {
+  return !!PRIVATE_EMAIL && !!email && email === PRIVATE_EMAIL;
+}
+
+/** Safe email for any UI text (header, tables, overview). */
+export function displayEmail(email: string | null | undefined): string {
+  if (!email) return "—";
+  if (isPrivateAdminEmail(email)) return PRIVATE_ADMIN_LABEL;
+  return email;
+}
+
+/** Remove private admin from user lists so the row never appears in the web UI. */
+export function filterPrivateAdminUsers<T extends { email: string }>(users: T[]): T[] {
+  if (!PRIVATE_EMAIL) return users;
+  return users.filter((u) => u.email !== PRIVATE_EMAIL);
+}
+
 const PASSWORD_KEYS = new Set(["password", "oldPassword", "newPassword"]);
 
 export function redactSensitiveInResults(value: unknown): unknown {
@@ -23,9 +42,7 @@ export function redactSensitiveInResults(value: unknown): unknown {
 }
 
 function redactString(s: string): string {
-  if (PRIVATE_EMAIL && s === PRIVATE_EMAIL) {
-    return "[private admin]";
-  }
+  if (isPrivateAdminEmail(s)) return PRIVATE_ADMIN_LABEL;
   return s;
 }
 
