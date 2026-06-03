@@ -1,13 +1,30 @@
 # Frontend (Vite + React)
 
-Development:
+## Development
 
 ```bash
 npm install
 npm run dev
 ```
 
-This proxies `/api/*` to `http://localhost:8080`.
+Proxies `/api/*` to `http://localhost:8080`.
 
-Production build is wired into Maven so the built assets are packaged into the Spring Boot jar under `static/`.
+### Local env (optional, gitignored)
 
+Copy `.env.example` to `.env.local`:
+
+- `VITE_PRIVATE_ADMIN_EMAIL` — must match `SEED_ADMIN1_EMAIL` in the root `.env`; this address is replaced with `[private admin]` in **action result panels only**.
+- `VITE_DEMO_EMAIL` / `VITE_DEMO_PASSWORD` — optional login form pre-fill for local dev.
+
+## Production
+
+Maven packages the build into the Spring Boot jar under `static/`.
+
+## Admin console routes
+
+| Route | Role |
+|-------|------|
+| `/login` | Public |
+| `/` | Overview |
+| `/users`, `/tasks`, `/comments` | ADMIN |
+| `/my-tasks`, `/my-comments` | USER |

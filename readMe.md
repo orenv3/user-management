@@ -75,14 +75,10 @@ You have 2 options:
 export JWT_SECRET="your-base64-secret"
 ```
 
-**Option B — set `JWT_SECRET` in a root `.env` file (for Docker Compose):**
+**Option B — set secrets in a root `.env` file (for Docker Compose and dev-seed):**
 
-- Create `./.env` at the project root (same folder as `docker-compose.yml`).
-- Add:
-
-```env
-JWT_SECRET=your-base64-secret
-```
+- Copy [`.env.example`](.env.example) to `./.env` at the project root (same folder as `docker-compose.yml`).
+- Fill in `JWT_SECRET` and, if you use `dev-seed`, **all** `SEED_ADMIN1_*`, `SEED_ADMIN2_*`, `SEED_USER1_*`, and `SEED_USER2_*` values (see [Seed data](#seed-data-optional)).
 
 To generate a strong Base64 secret:
 
@@ -120,10 +116,25 @@ Tests run under the `test` profile (H2 in-memory), and include:
 
 ## Seed data (optional)
 
-The startup seed (`CommandLineRunner`) is disabled by default and only runs when the `dev-seed` profile is active.
+The startup seed runs only when the `dev-seed` profile is active. It reads credentials from environment variables (via `.env` for Docker, or your shell / IDE run config locally). **No seed emails or passwords are stored in source code.**
+
+Required in `.env` when using `dev-seed`:
+
+- `SEED_ADMIN1_EMAIL`, `SEED_ADMIN1_PASSWORD`, `SEED_ADMIN1_NAME` — first admin (e.g. private dev account)
+- `SEED_ADMIN2_EMAIL`, `SEED_ADMIN2_PASSWORD`, `SEED_ADMIN2_NAME` — second admin
+- `SEED_USER1_*`, `SEED_USER2_*` — demo regular users
+
+If any required variable is missing or blank, seeding is skipped and an error is logged.
 
 Example:
 
 ```bash
+# Ensure .env is populated (copy from .env.example)
 SPRING_PROFILES_ACTIVE=local,dev-seed mvn spring-boot:run
 ```
+
+Docker Compose already loads `.env` and activates `dev-seed` via `SPRING_PROFILES_ACTIVE`.
+
+### Frontend local env
+
+Copy [`frontend/.env.example`](frontend/.env.example) to `frontend/.env.local` and set `VITE_PRIVATE_ADMIN_EMAIL` to the same value as `SEED_ADMIN1_EMAIL` so your private admin email is redacted in action result panels only.

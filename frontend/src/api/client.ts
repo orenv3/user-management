@@ -1,18 +1,7 @@
-export type AuthResponse = {
-  token: string | null;
-  email: string;
-  role: "ADMIN" | "USER" | string;
-  userId: number;
-};
+export type { AuthResponse } from "./types";
+export type { ApiErrorResponse } from "./types";
 
-export type ApiErrorResponse = {
-  timestamp: string;
-  status: number;
-  error: string;
-  message: string;
-  path: string;
-  fieldErrors?: Record<string, string> | null;
-};
+import type { ApiErrorResponse } from "./types";
 
 function getToken(): string | null {
   return sessionStorage.getItem("token");
@@ -36,24 +25,44 @@ async function parseJsonOrThrow(res: Response) {
   throw new Error(message);
 }
 
-export async function apiGet<T>(path: string): Promise<T> {
+function authHeaders(): Record<string, string> {
   const token = getToken();
-  const res = await fetch(path, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+export async function apiGet<T>(path: string): Promise<T> {
+  const res = await fetch(path, { headers: authHeaders() });
   return (await parseJsonOrThrow(res)) as T;
 }
 
-export async function apiPost<T>(path: string, body: unknown): Promise<T> {
-  const token = getToken();
+export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
   const res = await fetch(path, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...authHeaders(),
     },
-    body: JSON.stringify(body),
+    body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   return (await parseJsonOrThrow(res)) as T;
 }
 
+export async function apiPut<T>(path: string, body?: unknown): Promise<T> {
+  const res = await fetch(path, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(),
+    },
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+  return (await parseJsonOrThrow(res)) as T;
+}
+
+export async function apiDelete<T>(path: string): Promise<T> {
+  const res = await fetch(path, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  return (await parseJsonOrThrow(res)) as T;
+}

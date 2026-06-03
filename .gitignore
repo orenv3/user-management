@@ -13,6 +13,7 @@
 .env
 *.env
 .env.*
+!.env.example
 *.txt
 
 # Local configuration that shouldn't be shared

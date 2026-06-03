@@ -1,14 +1,71 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import { AuthProvider } from "./auth/AuthContext";
+import AppShell from "./components/AppShell";
+import { AdminRoute, ProtectedRoute, UserRoute } from "./components/ProtectedRoute";
+import CommentsPage from "./pages/CommentsPage";
 import LoginPage from "./pages/LoginPage";
-import DashboardPage from "./pages/DashboardPage";
+import MyCommentsPage from "./pages/MyCommentsPage";
+import MyTasksPage from "./pages/MyTasksPage";
+import OverviewPage from "./pages/OverviewPage";
+import TasksPage from "./pages/TasksPage";
+import UsersPage from "./pages/UsersPage";
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/" element={<DashboardPage />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <AuthProvider>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route
+          element={
+            <ProtectedRoute>
+              <AppShell />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="/" element={<OverviewPage />} />
+          <Route
+            path="/users"
+            element={
+              <AdminRoute>
+                <UsersPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/tasks"
+            element={
+              <AdminRoute>
+                <TasksPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/comments"
+            element={
+              <AdminRoute>
+                <CommentsPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/my-tasks"
+            element={
+              <UserRoute>
+                <MyTasksPage />
+              </UserRoute>
+            }
+          />
+          <Route
+            path="/my-comments"
+            element={
+              <UserRoute>
+                <MyCommentsPage />
+              </UserRoute>
+            }
+          />
+        </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </AuthProvider>
   );
 }
-

@@ -20,3 +20,6 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker,dev-seed,filelog
       - JWT_SECRET=${JWT_SECRET}
+      - LOG_PATH=/logs
+    volumes:
+      - ./logs:/logs
