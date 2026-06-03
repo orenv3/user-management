@@ -7,9 +7,7 @@ services:
       - POSTGRES_PASSWORD=admin
       - POSTGRES_DB=user_management_db
     ports:
-      - "5432:5432"
-    # volumes:
-    #   - postgres_data:/var/lib/postgresql/data
+      - "5433:5432"
 
   app:
     build: .
@@ -17,16 +15,8 @@ services:
       - "8080:8080"
     depends_on:
       - db
+    env_file:
+      - .env
     environment:
-      - LOG_PATH=/logs
-    volumes:
-      - ./logs:/logs
-    # environment:
-    #   # - SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/user_management_db
-    #   - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/user_management_db
-    #   - SPRING_DATASOURCE_USERNAME=postgres
-    #   - SPRING_DATASOURCE_PASSWORD=admin
-      
-
-# volumes:
-#   postgres_data:
+      - SPRING_PROFILES_ACTIVE=docker,dev-seed,filelog
+      - JWT_SECRET=${JWT_SECRET}

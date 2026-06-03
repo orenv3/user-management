@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -24,8 +25,11 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    private static final String SECRET_KEY = //256bit
-            "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
+    private final String secretKeyBase64;
+
+    public JwtService(@Value("${jwt.secret}") String secretKeyBase64) {
+        this.secretKeyBase64 = secretKeyBase64;
+    }
 
 
     public String generateToken(UserDetails userDetails){
@@ -80,7 +84,7 @@ public class JwtService {
     }
 
     private Key getSignInKey() { // get hashed key
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
+        byte[] keyBytes = Decoders.BASE64.decode(secretKeyBase64);
         return Keys.hmacShaKeyFor(keyBytes); // hmacSha is a type of keyed hash algorithm
     }
 }

@@ -6,6 +6,7 @@ import com.usermanagement.requestObjects.UpdateCommentRequest;
 import com.usermanagement.responseObjects.CommentResponse;
 import com.usermanagement.responseObjects.CommentsResponse;
 import com.usermanagement.dao.services.CommentService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -40,6 +41,7 @@ public class CommentController {
      * @return
      */
     @PostMapping("admin/createComment")
+    @Operation(summary = "Create a comment on any task (admin only)")
     public CommentResponse create(@Valid @RequestBody() AdminCreateCommentRequest commentObj) {
         logRequest("createComment", "taskId=" + commentObj.taskId());
         return commentService.createComment(commentObj);
@@ -52,6 +54,7 @@ public class CommentController {
      * @return
      */
     @PutMapping("admin/updateComment")
+    @Operation(summary = "Update a comment (admin only)")
     public CommentResponse update(@Valid @RequestBody() UpdateCommentRequest commentObj) {
         logRequest("updateComment", "id=" + commentObj.id());
         return commentService.updateComment(commentObj);
@@ -62,6 +65,7 @@ public class CommentController {
  * Get list of all comments in DB
  */
     @GetMapping("admin/allCommentList")
+    @Operation(summary = "List all comments (admin only)")
     public List<CommentResponse> getAllCommentList(){
         logRequest("allCommentList", null);
         return commentService.getAllCommentList();
@@ -75,6 +79,7 @@ public class CommentController {
      * @return
      */
     @PostMapping("user/commentMyTask")
+    @Operation(summary = "Comment on a task assigned to the user (user)")
     public CommentsResponse userCommentOnTask(@Valid @RequestBody() UserTaskCommentRequest commentObj) {
         logRequest("commentMyTask", "taskId=" + commentObj.taskId() + ", userId=" + commentObj.userId());
         return commentService.userCommentOnTask(commentObj);
@@ -89,6 +94,7 @@ public class CommentController {
      * @return
      */
     @GetMapping("user/userCommentList/{userId}")
+    @Operation(summary = "List comments on the user's assigned tasks (user)")
     public List<CommentsResponse> getAllUserCommentList( @PathVariable("userId") long userId){
         logRequest("userCommentList", "userId=" + userId);
         return commentService.getAllUserCommentList(userId);

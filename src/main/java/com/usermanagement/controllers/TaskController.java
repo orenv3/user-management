@@ -6,6 +6,7 @@ import com.usermanagement.requestObjects.CreateTaskRequest;
 import com.usermanagement.requestObjects.UpdateTaskRequest;
 import com.usermanagement.responseObjects.TaskResponse;
 import com.usermanagement.responseObjects.TaskTableResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -42,6 +43,7 @@ public class TaskController {
      * @return
      */
     @PostMapping("admin/createTask")
+    @Operation(summary = "Create a new task (admin only)")
     public TaskResponse create(@Valid @RequestBody() CreateTaskRequest taskObj) throws TaskGeneralErrorException {
         logRequest("createTask", "title=" + taskObj.title());
         return taskService.createTask(taskObj);
@@ -54,6 +56,7 @@ public class TaskController {
      * @return String succeed
      */
     @DeleteMapping("admin/deleteTask/{id}")
+    @Operation(summary = "Delete a task by id (admin only)")
     public String delete(@NotNull @PathVariable("id") long id) {
         logRequest("deleteTask", "id=" + id);
         return taskService.deleteTask(id);
@@ -66,6 +69,7 @@ public class TaskController {
      * @return
      */
     @PutMapping("admin/updateTask")
+    @Operation(summary = "Update a task (admin only)")
     public TaskResponse update(@Valid @RequestBody() UpdateTaskRequest taskObj) throws TaskGeneralErrorException {
         logRequest("updateTask", "id=" + taskObj.id());
         return taskService.updateTask(taskObj);
@@ -77,6 +81,7 @@ public class TaskController {
      * @return
      */
     @GetMapping("admin/allTaskList")
+    @Operation(summary = "List all tasks (admin only)")
     public List<TaskResponse> getAllTaskList(){
         logRequest("allTaskList", null);
         return taskService.getAllTaskList();
@@ -101,6 +106,7 @@ public class TaskController {
      * @return
      */
     @PutMapping("admin/assignUser{taskId}/{userId}")
+    @Operation(summary = "Assign a task to a user (admin only)")
     public TaskTableResponse assignUserToTask(@PathVariable("taskId") long taskId, @PathVariable("userId") long userId){
         logRequest("assignUserToTask", "taskId=" + taskId + ", userId=" + userId);
         return taskService.assignUserToTask(taskId,userId);
@@ -129,6 +135,7 @@ public class TaskController {
      * @return
      */
     @GetMapping("user/allTaskList/{assignee}")
+    @Operation(summary = "List tasks assigned to a user (user)")
     public List<TaskTableResponse> getAllUserTaskList(@PathVariable("assignee") @Min(1) long assignee){
         logRequest("allUserTaskList", "assignee=" + assignee);
         return taskService.getAllUserTaskList(assignee);
@@ -141,6 +148,7 @@ public class TaskController {
      * @return
      */
     @PutMapping("user/updateComplete")
+    @Operation(summary = "Mark a task as completed (user)")
     public String setTaskComplete(Long taskId) {
         logRequest("setTaskComplete", "taskId=" + taskId);
         return taskService.setTaskComplete(taskId);

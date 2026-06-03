@@ -64,7 +64,8 @@ public class AuthenticationService {
     }
     private AuthResponse generateTokenByUser(Users user){
         var jwtToken = jwtService.generateToken(user);
-       return new AuthResponse(jwtToken);
+        String role = user.getRole() == null ? Role.chooseRole(user.isAdmin()).name() : user.getRole().name();
+        return new AuthResponse(jwtToken, user.getEmail(), role, user.getId());
     }
 
 }

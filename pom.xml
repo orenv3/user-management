@@ -105,6 +105,74 @@
 	<build>
 		<plugins>
 		  <plugin>
+			<groupId>com.github.eirslett</groupId>
+			<artifactId>frontend-maven-plugin</artifactId>
+			<version>1.15.0</version>
+			<configuration>
+			  <workingDirectory>frontend</workingDirectory>
+			  <environmentVariables>
+				<PATH>${env.PATH}</PATH>
+				<npm_config_script_shell>/bin/bash</npm_config_script_shell>
+			  </environmentVariables>
+			</configuration>
+			<executions>
+			  <execution>
+				<id>install-node-and-npm</id>
+				<goals>
+				  <goal>install-node-and-npm</goal>
+				</goals>
+				<configuration>
+				  <nodeVersion>v20.15.1</nodeVersion>
+				  <npmVersion>10.8.2</npmVersion>
+				</configuration>
+			  </execution>
+			  <execution>
+				<id>npm-install</id>
+				<goals>
+				  <goal>npm</goal>
+				</goals>
+				<configuration>
+				  <arguments>install</arguments>
+				</configuration>
+			  </execution>
+			  <execution>
+				<id>npm-build</id>
+				<goals>
+				  <goal>npm</goal>
+				</goals>
+				<phase>generate-resources</phase>
+				<configuration>
+				  <arguments>run build</arguments>
+				</configuration>
+			  </execution>
+			</executions>
+		  </plugin>
+
+		  <plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-resources-plugin</artifactId>
+			<version>3.3.1</version>
+			<executions>
+			  <execution>
+				<id>copy-frontend-to-static</id>
+				<phase>process-resources</phase>
+				<goals>
+				  <goal>copy-resources</goal>
+				</goals>
+				<configuration>
+				  <outputDirectory>${project.build.outputDirectory}/static</outputDirectory>
+				  <resources>
+					<resource>
+					  <directory>frontend/dist</directory>
+					  <filtering>false</filtering>
+					</resource>
+				  </resources>
+				</configuration>
+			  </execution>
+			</executions>
+		  </plugin>
+
+		  <plugin>
 			<groupId>org.apache.maven.plugins</groupId>
 			<artifactId>maven-compiler-plugin</artifactId>
 			<version>3.11.0</version>

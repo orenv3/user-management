@@ -4,6 +4,7 @@ package com.usermanagement.controllers;
 import com.usermanagement.dao.services.UserService;
 import com.usermanagement.requestObjects.UpdateUserRequest;
 import com.usermanagement.responseObjects.UserResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -41,6 +42,7 @@ public class UserController {
      * @return
      */
     @DeleteMapping("admin/deleteUser/{id}")
+    @Operation(summary = "Delete a user by id (admin only)")
     public String delete(@NotNull @Min(2) @PathVariable("id") long id) {//1 is default admin
         logRequest("deleteUser", "id=" + id);
         return userService.deleteUser(id);
@@ -53,6 +55,7 @@ public class UserController {
      * @return
      */
     @PutMapping("admin/updateUser")
+    @Operation(summary = "Update a user (admin only)")
     public UserResponse update(@Valid @RequestBody() UpdateUserRequest updateObj) {
         logRequest("updateUser", "id=" + updateObj.id());
         return userService.updateUser(updateObj);
@@ -64,6 +67,7 @@ public class UserController {
      * @return
      */
     @GetMapping("admin/allUserList")
+    @Operation(summary = "List all users (admin only)")
     public List<UserResponse> getAllUserList(){
         logRequest("allUserList", null);
         return userService.getAllUserList();

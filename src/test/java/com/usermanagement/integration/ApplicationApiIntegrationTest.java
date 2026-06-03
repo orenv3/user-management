@@ -28,7 +28,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -88,7 +87,22 @@ class ApplicationApiIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"user@example.com\",\"password\":\"userPass\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").isNotEmpty());
+                .andExpect(jsonPath("$.token").isNotEmpty())
+                .andExpect(jsonPath("$.email").value("user@example.com"))
+                .andExpect(jsonPath("$.role").value("USER"))
+                .andExpect(jsonPath("$.userId").isNumber());
+    }
+
+    @Test
+    void me_returnsCurrentUserDetails() throws Exception {
+        String token = login("user@example.com", "userPass");
+        mockMvc.perform(get("/api/auth/me")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").doesNotExist())
+                .andExpect(jsonPath("$.email").value("user@example.com"))
+                .andExpect(jsonPath("$.role").value("USER"))
+                .andExpect(jsonPath("$.userId").isNumber());
     }
 
     @Test
@@ -137,8 +151,9 @@ class ApplicationApiIntegrationTest {
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(first)))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString("same title")));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("same title")))
+                .andExpect(jsonPath("$.status").value(400));
     }
 
     @Test
@@ -246,8 +261,9 @@ class ApplicationApiIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
                                 new UserTaskCommentRequest("hack", task.getId(), u.getId()))))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString("can not comment")));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("can not comment")))
+                .andExpect(jsonPath("$.status").value(400));
     }
 
     @Test

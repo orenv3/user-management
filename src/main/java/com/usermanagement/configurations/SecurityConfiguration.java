@@ -54,6 +54,14 @@ public class SecurityConfiguration {
                 .permitAll()
                 .requestMatchers(req->  req.getRequestURI().contains("api-docs"))
                 .permitAll()
+                .requestMatchers(req -> {
+                    String uri = req.getRequestURI();
+                    return uri.equals("/")
+                            || uri.equals("/login")
+                            || uri.equals("/index.html")
+                            || uri.startsWith("/assets/")
+                            || uri.equals("/favicon.ico");
+                }).permitAll()
                 .requestMatchers(req->  req.getRequestURI().contains("/auth/login"))
                 .permitAll()
                 .requestMatchers(req->  req.getRequestURI().contains("/user/")).hasAuthority("USER")
