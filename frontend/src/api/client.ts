@@ -16,12 +16,27 @@ export function logout() {
   setToken(null);
 }
 
+/** Parses JSON bodies; plain-text success responses (e.g. "Deleted: true") are returned as-is. */
+function parseResponseBody(text: string, ok: boolean): unknown {
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    if (ok) return trimmed;
+    return { message: trimmed };
+  }
+}
+
 async function parseJsonOrThrow(res: Response) {
   const text = await res.text();
-  const json = text ? JSON.parse(text) : null;
-  if (res.ok) return json;
-  const err = json as ApiErrorResponse | null;
-  const message = err?.message ?? `Request failed (${res.status})`;
+  const body = parseResponseBody(text, res.ok);
+  if (res.ok) return body;
+  const err = body as ApiErrorResponse | null;
+  const message =
+    err?.message ??
+    (typeof body === "string" ? body : null) ??
+    `Request failed (${res.status})`;
   throw new Error(message);
 }
 
