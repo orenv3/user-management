@@ -5,6 +5,7 @@
 
 ### Universal ###
 # Common files that should be ignored in all projects
+*.gif
 # Temporary files
 *.tmp
 *~

@@ -10,6 +10,10 @@ WORKDIR /workspace
 COPY pom.xml .
 RUN mvn -q -DskipTests dependency:go-offline
 
+# Vite reads VITE_* from repo-root .env during npm build (see frontend/vite.config.ts envDir).
+COPY .env* ./
+RUN test -f .env || cp .env.example .env
+
 # Build the app (frontend required by frontend-maven-plugin)
 COPY src ./src
 COPY frontend ./frontend

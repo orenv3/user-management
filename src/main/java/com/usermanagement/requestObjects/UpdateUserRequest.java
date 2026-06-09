@@ -1,6 +1,7 @@
 package com.usermanagement.requestObjects;
 
 import com.usermanagement.entities.Users;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -10,8 +11,12 @@ import java.util.Optional;
 
 public record UpdateUserRequest(
 
-        @NotNull @Min(2) Long id,
-        @Size(max = 15) String name,
+        @NotNull(message = "User id is required")
+        @Min(value = 2, message = "User id must be at least 2 (protected accounts cannot be edited)")
+        Long id,
+        @Size(max = 15, message = "Name must be at most 15 characters")
+        String name,
+        @Email(message = "Email must be a valid address (e.g. user@example.com)")
         String email,
         Boolean isAdmin,
         Boolean active,

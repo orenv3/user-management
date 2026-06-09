@@ -1,6 +1,8 @@
 package com.usermanagement.dao.services;
 
+import com.usermanagement.config.PrivateAdminPolicy;
 import com.usermanagement.entities.Users;
+import com.usermanagement.errorHandler.ProtectedUserException;
 import com.usermanagement.mappers.EntityMapper;
 import com.usermanagement.repositories.UserRepo;
 import com.usermanagement.requestObjects.CreateUserRequest;
@@ -16,6 +18,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
@@ -28,7 +31,8 @@ class UserServiceTest {
     
     @Mock
     private EntityMapper entityMapper;
-    
+
+    private PrivateAdminPolicy privateAdminPolicy;
     private AutoCloseable autoCloseable;
     private UserService userServiceUnderTest;
 
@@ -36,14 +40,14 @@ class UserServiceTest {
     @BeforeEach
     public void setup() {
         autoCloseable = MockitoAnnotations.openMocks(this);
-        userServiceUnderTest = new UserService(userRepo, entityMapper);
+        privateAdminPolicy = new PrivateAdminPolicy("");
+        userServiceUnderTest = new UserService(userRepo, entityMapper, privateAdminPolicy);
 
         when(userRepo.findAll()).thenReturn(this.getUserList());
         when(userRepo.findByEmail(any())).thenReturn(Optional.ofNullable(this.getUserPrivilge()));
         when(userRepo.getReferenceById(3L)).thenReturn(this.getUserPrivilge());
         when(userRepo.existsById(3L)).thenReturn(false);
         
-        // Mock EntityMapper to return UserResponse for any User
         when(entityMapper.toUserResponse(any(Users.class))).thenAnswer(invocation -> {
             Users user = invocation.getArgument(0);
             return new UserResponse(
@@ -55,7 +59,6 @@ class UserServiceTest {
             );
         });
         
-        // Mock list mapping for getAllUserList
         when(entityMapper.toUserResponseList(anyList())).thenAnswer(invocation -> {
             List<Users> users = invocation.getArgument(0);
             return users.stream()
@@ -77,7 +80,6 @@ class UserServiceTest {
 
     @Test
     void updateUser() {
-        // Given
         long userId = 3L;
         UpdateUserRequest updateRequest = new UpdateUserRequest(
                 userId,
@@ -109,10 +111,8 @@ class UserServiceTest {
         );
         when(entityMapper.toUserResponse(updatedUser)).thenReturn(expectedResponse);
 
-        // When
         UserResponse result = userServiceUnderTest.updateUser(updateRequest);
 
-        // Then
         verify(userRepo).getReferenceById(userId);
         verify(userRepo).save(any(Users.class));
         assertThat(result).isNotNull();
@@ -123,16 +123,13 @@ class UserServiceTest {
 
     @Test
     void getAllUserList() {
-        // When
         List<UserResponse> usersListUnderTest = userServiceUnderTest.getAllUserList();
 
-        // Then verify
         verify(userRepo).findAll();
         verify(entityMapper).toUserResponseList(anyList());
         assertThat(usersListUnderTest).isNotNull();
         assertThat(usersListUnderTest.size()).isEqualTo(5);
 
-        // Verify that user's email is unique
         Set<String> checkEmailDuplication = new HashSet<>();
         Optional<UserResponse> isDuplicate = usersListUnderTest.stream()
                 .filter(usr -> !(checkEmailDuplication.add(usr.email())))
@@ -142,14 +139,48 @@ class UserServiceTest {
     }
 
     @Test
+    void getAllUserList_excludesPrivateAdmin() {
+        privateAdminPolicy = new PrivateAdminPolicy("oren@email1");
+        userServiceUnderTest = new UserService(userRepo, entityMapper, privateAdminPolicy);
+
+        List<UserResponse> usersListUnderTest = userServiceUnderTest.getAllUserList();
+
+        assertThat(usersListUnderTest).hasSize(4);
+        assertThat(usersListUnderTest.stream().map(UserResponse::email)).doesNotContain("oren@email1");
+    }
+
+    @Test
+    void updateUser_rejectsPrivateAdmin() {
+        privateAdminPolicy = new PrivateAdminPolicy("oren@email1");
+        userServiceUnderTest = new UserService(userRepo, entityMapper, privateAdminPolicy);
+        Users privateAdmin = getUserList().get(0);
+        when(userRepo.getReferenceById(1L)).thenReturn(privateAdmin);
+
+        UpdateUserRequest updateRequest = new UpdateUserRequest(1L, "new", null, null, null, null);
+
+        assertThatThrownBy(() -> userServiceUnderTest.updateUser(updateRequest))
+                .isInstanceOf(ProtectedUserException.class);
+    }
+
+    @Test
+    void deleteUser_rejectsPrivateAdmin() {
+        privateAdminPolicy = new PrivateAdminPolicy("oren@email1");
+        userServiceUnderTest = new UserService(userRepo, entityMapper, privateAdminPolicy);
+        Users privateAdmin = getUserList().get(0);
+        when(userRepo.getReferenceById(1L)).thenReturn(privateAdmin);
+
+        assertThatThrownBy(() -> userServiceUnderTest.deleteUser(1L))
+                .isInstanceOf(ProtectedUserException.class);
+
+        verify(userRepo, never()).deleteById(1L);
+    }
+
+    @Test
     void getUserById() {
-        // Given
         long userId = 3L;
 
-        // When
         Users userUnderTest = userServiceUnderTest.getUserById(userId);
 
-        // Then
         verify(userRepo).getReferenceById(userId);
         assertThat(userUnderTest.getId()).isEqualTo(userId);
         assertThat(userUnderTest.getEmail()).isEqualTo(getUserPrivilge().getEmail());
@@ -157,15 +188,12 @@ class UserServiceTest {
 
     @Test
     void findUserByEmail() {
-        // Given
         long userId = 3L;
         Users userUnderTest = userServiceUnderTest.getUserById(userId);
         String emailUnderTest = userUnderTest.getEmail();
 
-        // When
         Optional<Users> foundUser = userServiceUnderTest.findUserByEmail(emailUnderTest);
 
-        // Then
         verify(userRepo).getReferenceById(userId);
         verify(userRepo).findByEmail(emailUnderTest);
         assertThat(foundUser).isPresent();
@@ -175,22 +203,17 @@ class UserServiceTest {
 
     @Test
     void deleteUser() {
-        // Given
         long userIdToDelete = 3L;
         when(userRepo.existsById(userIdToDelete)).thenReturn(false);
+        when(userRepo.getReferenceById(userIdToDelete)).thenReturn(getUserPrivilge());
 
-        // When
         String result = userServiceUnderTest.deleteUser(userIdToDelete);
 
-        // Then
         verify(userRepo).deleteById(userIdToDelete);
         verify(userRepo).existsById(userIdToDelete);
         assertThat(result).isEqualTo("Deleted: true");
     }
 
-    /**
-     * Helper methods to create test data.
-     */
     private List<Users> getUserList() {
         CreateUserRequest userRequest1 = new CreateUserRequest(
                 "oren", "oren@email1",

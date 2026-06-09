@@ -101,3 +101,31 @@ export type UserTaskCommentRequest = {
   taskId: number;
   userId: number;
 };
+
+export type ActivityEventType = "PAGE_VIEW" | "LOGIN" | "ACTION";
+
+export type ActivityEventResponse = {
+  id: number;
+  timestamp: string;
+  eventType: ActivityEventType;
+  userId: number | null;
+  email: string | null;
+  sessionId: string | null;
+  path: string | null;
+  action: string | null;
+  details: string | null;
+};
+
+export type UserActivityCount = {
+  email: string;
+  count: number;
+};
+
+export type ActivitySummaryResponse = {
+  totalPageViews: number;
+  uniqueSessions: number;
+  totalLogins: number;
+  totalActions: number;
+  loginsByUser: UserActivityCount[];
+  actionsByUser: UserActivityCount[];
+};

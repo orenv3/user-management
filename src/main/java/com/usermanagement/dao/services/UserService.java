@@ -1,5 +1,6 @@
 package com.usermanagement.dao.services;
 
+import com.usermanagement.config.PrivateAdminPolicy;
 import com.usermanagement.entities.Users;
 import com.usermanagement.mappers.EntityMapper;
 import com.usermanagement.repositories.UserRepo;
@@ -24,10 +25,15 @@ public class UserService {
 
     private final UserRepo userRepo;
     private final EntityMapper entityMapper;
+    private final PrivateAdminPolicy privateAdminPolicy;
 
     public UserResponse updateUser(UpdateUserRequest updateObj){
         log.info("Update user requested. id={}", updateObj.id());
         Users user = userRepo.getReferenceById(updateObj.id());
+        privateAdminPolicy.assertNotPrivateAdmin(user.getEmail());
+        if (updateObj.email() != null) {
+            privateAdminPolicy.assertNotPrivateAdminEmailChange(updateObj.email());
+        }
         entityMapper.updateUserFromRequest(updateObj, user);
         Users savedUser =  userRepo.save(user);
         log.info("User updated. id={} email={}", savedUser.getId(), savedUser.getEmail());
@@ -36,7 +42,8 @@ public class UserService {
 
     public String deleteUser(long id){
         log.info("Delete user requested. id={}", id);
-        // User user = userRepo.getReferenceById(id);
+        Users user = userRepo.getReferenceById(id);
+        privateAdminPolicy.assertNotPrivateAdmin(user.getEmail());
         userRepo.deleteById(id);
         boolean deleted = !(userRepo.existsById(id));
         log.info("Delete user result. id={} deleted={}", id, deleted);
@@ -48,7 +55,7 @@ public class UserService {
         log.info("Get all users requested.");
         List<Users> usersList = userRepo.findAll();
         log.info("Get all users result count={}", usersList.size());
-        return entityMapper.toUserResponseList(usersList);
+        return privateAdminPolicy.filterFromList(entityMapper.toUserResponseList(usersList));
     }
 
     public List<UserResponse> getAllUserListWithPageRequest(int pageNo, int pageSize){
@@ -56,7 +63,7 @@ public class UserService {
         Pageable pageable =  PageRequest.of(pageNo-1,pageSize);
         List<Users> content = userRepo.findAll(pageable).getContent();
         log.info("Get users page result count={}", content.size());
-        return entityMapper.toUserResponseList(content);
+        return privateAdminPolicy.filterFromList(entityMapper.toUserResponseList(content));
     }
 
     public Users getUserById(long id){

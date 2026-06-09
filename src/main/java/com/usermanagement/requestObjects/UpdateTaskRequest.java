@@ -9,10 +9,13 @@ import jakarta.validation.constraints.Size;
 
 public record UpdateTaskRequest(
 
-        @NotNull Long id,
-        @Size(max=15) String title,
-        @Size(max=40) String description,
-        String status //(pending/completed/archived)
+        @NotNull(message = "Task id is required")
+        Long id,
+        @Size(max = 15, message = "Title must be at most 15 characters")
+        String title,
+        @Size(max = 40, message = "Description must be at most 40 characters")
+        String description,
+        String status
 
 ){
 

@@ -1,5 +1,7 @@
 package com.usermanagement.security;
 
+import com.usermanagement.config.PrivateAdminPolicy;
+import com.usermanagement.dao.services.ActivityService;
 import com.usermanagement.entities.Users;
 import com.usermanagement.errorHandler.UserValidationErrorException;
 import com.usermanagement.mappers.EntityMapper;
@@ -33,6 +35,8 @@ class AuthenticationServiceTest {
     private AuthenticationManager authMng;
     @Mock
     private EntityMapper entityMapper;
+    @Mock
+    private ActivityService activityService;
 
     private AutoCloseable mocks;
     private AuthenticationService authenticationService;
@@ -41,7 +45,13 @@ class AuthenticationServiceTest {
     void setUp() {
         mocks = MockitoAnnotations.openMocks(this);
         authenticationService = new AuthenticationService(
-                userRepo, passwordEncoder, jwtService, authMng, entityMapper);
+                userRepo,
+                passwordEncoder,
+                jwtService,
+                authMng,
+                entityMapper,
+                new PrivateAdminPolicy("private@test.com"),
+                activityService);
     }
 
     @AfterEach
@@ -61,5 +71,31 @@ class AuthenticationServiceTest {
                 .hasMessageContaining("already exists");
 
         verify(userRepo, never()).save(any());
+    }
+
+    @Test
+    void registerUser_rejectsPrivateAdminEmail() {
+        CreateUserRequest req = new CreateUserRequest("n", "private@test.com", false, true, "secret");
+        when(userRepo.findByEmail("private@test.com")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> authenticationService.registerUser(req))
+                .isInstanceOf(UserValidationErrorException.class)
+                .hasMessageContaining("protected account");
+
+        verify(userRepo, never()).save(any());
+    }
+
+    @Test
+    void registerSeedUser_allowsPrivateAdminEmail() throws UserValidationErrorException {
+        CreateUserRequest req = new CreateUserRequest("n", "private@test.com", true, true, "secret");
+        Users entity = new Users(req);
+        when(userRepo.findByEmail("private@test.com")).thenReturn(Optional.empty());
+        when(entityMapper.toEntity(req)).thenReturn(entity);
+        when(passwordEncoder.encode("secret")).thenReturn("encoded");
+        when(userRepo.save(entity)).thenReturn(entity);
+
+        authenticationService.registerSeedUser(req);
+
+        verify(userRepo).save(entity);
     }
 }

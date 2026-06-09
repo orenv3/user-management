@@ -40,7 +40,7 @@ public class AuthenticationController {
 
     @PostMapping("login")
     @Operation(summary = "Login and receive a JWT")
-    public ResponseEntity<AuthResponse> authenticate(@RequestBody AuthenticationRequest authRequest){
+    public ResponseEntity<AuthResponse> authenticate(@Valid @RequestBody AuthenticationRequest authRequest){
         return ResponseEntity.ok(authenticationService.authenticateUser(authRequest));
     }
 

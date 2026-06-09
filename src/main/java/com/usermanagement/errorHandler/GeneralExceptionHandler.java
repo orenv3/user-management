@@ -1,6 +1,7 @@
 package com.usermanagement.errorHandler;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -16,10 +17,45 @@ import org.slf4j.LoggerFactory;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class GeneralExceptionHandler extends ResponseEntityExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GeneralExceptionHandler.class);
+
+    @ExceptionHandler({ ProtectedUserException.class })
+    protected ResponseEntity<ApiErrorResponse> handleProtectedUserException(ProtectedUserException e, HttpServletRequest request) {
+        log.warn("Protected user operation rejected. message={}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                ApiErrorResponse.of(
+                        HttpStatus.FORBIDDEN.value(),
+                        HttpStatus.FORBIDDEN.getReasonPhrase(),
+                        e.getMessage(),
+                        request.getRequestURI()
+                )
+        );
+    }
+
+    @ExceptionHandler({ ConstraintViolationException.class })
+    protected ResponseEntity<ApiErrorResponse> handleConstraintViolation(ConstraintViolationException e, HttpServletRequest request) {
+        Map<String, String> fieldErrors = new LinkedHashMap<>();
+        e.getConstraintViolations().forEach(v -> {
+            String path = v.getPropertyPath().toString();
+            String field = path.contains(".") ? path.substring(path.lastIndexOf('.') + 1) : path;
+            fieldErrors.putIfAbsent(field, v.getMessage());
+        });
+        String message = summarizeFieldErrors(fieldErrors);
+        log.warn("Constraint violation. message={}", message);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                ApiErrorResponse.of(
+                        HttpStatus.BAD_REQUEST.value(),
+                        HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                        message,
+                        request.getRequestURI(),
+                        fieldErrors
+                )
+        );
+    }
 
     @ExceptionHandler({ UserValidationErrorException.class })
     protected ResponseEntity<ApiErrorResponse> handleValidationErrorException(UserValidationErrorException e, HttpServletRequest request) {
@@ -72,10 +108,17 @@ public class GeneralExceptionHandler extends ResponseEntityExceptionHandler {
         ApiErrorResponse body = ApiErrorResponse.of(
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                "Validation failed",
+                summarizeFieldErrors(fieldErrors),
                 request.getDescription(false).replace("uri=", ""),
                 fieldErrors
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    private static String summarizeFieldErrors(Map<String, String> fieldErrors) {
+        if (fieldErrors == null || fieldErrors.isEmpty()) {
+            return "Validation failed";
+        }
+        return fieldErrors.values().stream().collect(Collectors.joining("; "));
     }
 }

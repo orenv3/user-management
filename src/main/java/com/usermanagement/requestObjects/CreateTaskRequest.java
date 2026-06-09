@@ -5,11 +5,13 @@ import com.usermanagement.utils.TaskStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public record CreateTaskRequest(@NotBlank @Size(max=15) String title,
-                                @Size(max=40) String description,
-                                String status//(pending/completed/archived)
-
-
+public record CreateTaskRequest(
+        @NotBlank(message = "Title is required")
+        @Size(max = 15, message = "Title must be at most 15 characters")
+        String title,
+        @Size(max = 40, message = "Description must be at most 40 characters")
+        String description,
+        String status
 ) {
 
 

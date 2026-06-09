@@ -88,7 +88,7 @@ public class DevSeedRunner implements CommandLineRunner {
     private void seedUser(String label, String name, String email, String password, boolean isAdmin)
             throws UserValidationErrorException {
         CreateUserRequest request = new CreateUserRequest(name, email, isAdmin, true, password);
-        AuthResponse response = authenticationService.registerUser(request);
+        AuthResponse response = authenticationService.registerSeedUser(request);
         log.info("Seed {}: {}", label, response);
     }
 

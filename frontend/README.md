@@ -1,5 +1,13 @@
 # Frontend (Vite + React)
 
+For a plain-language overview and demo walkthrough, see the root [readMe.md](../readMe.md#for-everyone).
+
+## Environment variables
+
+All `VITE_*` settings live in the **repo-root** [`.env`](../.env) — the same file as `JWT_SECRET` and `SEED_*`. Copy [`.env.example`](../.env.example) to `.env` at the project root.
+
+Vite loads them via `envDir: ".."` in [`vite.config.ts`](vite.config.ts). After changing `VITE_*`, restart `npm run dev` or rebuild the Docker image.
+
 ## Development
 
 ```bash
@@ -9,22 +17,27 @@ npm run dev
 
 Proxies `/api/*` to `http://localhost:8080`.
 
-### Local env (optional, gitignored)
+### Demo video on login page
 
-Copy `.env.example` to `.env.local`:
+Recommended: host on YouTube and set in repo-root `.env`:
 
-- `VITE_PRIVATE_ADMIN_EMAIL` — must match `SEED_ADMIN1_EMAIL` in the root `.env`; this address is shown as `[private admin]` in the header and overview, **omitted from user tables**, and redacted in action result panels.
-- `VITE_DEMO_EMAIL` / `VITE_DEMO_PASSWORD` — optional login form pre-fill for local dev.
+```env
+VITE_DEMO_VIDEO_URL=https://youtu.be/4f4ND3ctlD8
+```
+
+Alternatively, use a local file at `public/demo.mp4` with `VITE_DEMO_VIDEO_URL=/demo.mp4`.
+
+Restart the dev server or run `docker compose up --build` after changes.
 
 ## Production
 
-Maven packages the build into the Spring Boot jar under `static/`.
+Maven packages the build into the Spring Boot jar under `static/`. The Dockerfile copies repo-root `.env` before `npm run build`.
 
-## Admin console routes
+## Routes
 
 | Route | Role |
 |-------|------|
 | `/login` | Public |
 | `/` | Overview |
-| `/users`, `/tasks`, `/comments` | ADMIN |
+| `/users`, `/tasks`, `/comments`, `/analytics` | ADMIN |
 | `/my-tasks`, `/my-comments` | USER |

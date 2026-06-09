@@ -9,8 +9,11 @@ import java.util.Date;
 
 
 public record UpdateCommentRequest(
-        @NotNull Long id,
-        @NotBlank @Size(max=120) String comment){
+        @NotNull(message = "Comment id is required")
+        Long id,
+        @NotBlank(message = "Comment is required")
+        @Size(max = 120, message = "Comment must be at most 120 characters")
+        String comment){
 
     public Comment updateCommentParameters(UpdateCommentRequest updateObj, Comment comment){
 

@@ -12,6 +12,13 @@ import ResultPanel from "../components/ResultPanel";
 import { useAction } from "../hooks/useAction";
 import { filterPrivateAdminUsers } from "../utils/redactSensitiveInResults";
 
+const seedUserName = import.meta.env.VITE_SEED_USER_NAME as string | undefined;
+const seedUserEmail = import.meta.env.VITE_SEED_USER_EMAIL as string | undefined;
+const seedUserPassword = import.meta.env.VITE_SEED_USER_PASSWORD as string | undefined;
+const seedAdminName = import.meta.env.VITE_SEED_ADMIN_NAME as string | undefined;
+const seedAdminEmail = import.meta.env.VITE_SEED_ADMIN_EMAIL as string | undefined;
+const seedAdminPassword = import.meta.env.VITE_SEED_ADMIN_PASSWORD as string | undefined;
+
 export default function UsersPage() {
   const [users, setUsers] = useState<UserResponse[]>([]);
   const listAction = useAction();
@@ -43,7 +50,10 @@ export default function UsersPage() {
   }, []);
 
   const loadAll = useCallback(async () => {
-    const data = await listAction.run(() => apiGet<UserResponse[]>("/api/userTable/admin/allUserList"));
+    const data = await listAction.run(async () => {
+      const raw = await apiGet<UserResponse[]>("/api/userTable/admin/allUserList");
+      return filterPrivateAdminUsers(raw);
+    });
     applyUserList(data as UserResponse[]);
   }, [listAction, applyUserList]);
 
@@ -52,6 +62,24 @@ export default function UsersPage() {
       .then(applyUserList)
       .catch(() => {});
   }, [applyUserList]);
+
+  function fillRegisterUser() {
+    if (seedUserName) setRegName(seedUserName);
+    if (seedUserEmail) setRegEmail(seedUserEmail);
+    if (seedUserPassword) setRegPassword(seedUserPassword);
+    setRegIsAdmin(false);
+    setRegActive(true);
+    registerAction.reset();
+  }
+
+  function fillRegisterAdmin() {
+    if (seedAdminName) setRegName(seedAdminName);
+    if (seedAdminEmail) setRegEmail(seedAdminEmail);
+    if (seedAdminPassword) setRegPassword(seedAdminPassword);
+    setRegIsAdmin(true);
+    setRegActive(true);
+    registerAction.reset();
+  }
 
   const userColumns = [
     { key: "id", header: "ID", render: (u: UserResponse) => u.id },
@@ -89,11 +117,12 @@ export default function UsersPage() {
             type="button"
             className={btnPrimary}
             onClick={() =>
-              paginatedAction.run(() =>
-                apiGet<UserResponse[]>(
+              paginatedAction.run(async () => {
+                const data = await apiGet<UserResponse[]>(
                   `/api/userTable/admin/allUserListWithPagination?pageNumber=${pageNumber}&pageSize=${pageSize}`
-                )
-              )
+                );
+                return filterPrivateAdminUsers(data);
+              })
             }
           >
             Run
@@ -103,8 +132,20 @@ export default function UsersPage() {
       </PageSection>
 
       <PageSection title="Register user" description="POST /api/auth/admin/registerUser">
+        <div className="flex flex-wrap gap-2 mb-4">
+          {seedUserEmail && (
+            <button type="button" className={btnSecondary} onClick={fillRegisterUser}>
+              Fill demo user
+            </button>
+          )}
+          {seedAdminEmail && (
+            <button type="button" className={btnSecondary} onClick={fillRegisterAdmin}>
+              Fill demo admin
+            </button>
+          )}
+        </div>
         <div className="grid gap-4 sm:grid-cols-2 max-w-2xl">
-          <Field label="name (max 15)">
+          <Field label="name (max 15 characters)">
             <input className={inputClass} value={regName} onChange={(e) => setRegName(e.target.value)} />
           </Field>
           <Field label="email">
@@ -139,7 +180,7 @@ export default function UsersPage() {
         <ResultPanel {...registerAction} />
       </PageSection>
 
-      <PageSection title="Update user" description="PUT /api/userTable/admin/updateUser">
+      <PageSection title="Update user" description="PUT /api/userTable/admin/updateUser — protected accounts cannot be edited">
         <div className="grid gap-4 sm:grid-cols-2 max-w-2xl">
           <Field label="id (required, min 2)">
             <input className={inputClass} value={updId} onChange={(e) => setUpdId(e.target.value)} />
@@ -186,7 +227,7 @@ export default function UsersPage() {
         <ResultPanel {...updateAction} />
       </PageSection>
 
-      <PageSection title="Delete user" description="DELETE .../deleteUser/{id}">
+      <PageSection title="Delete user" description="DELETE .../deleteUser/{id} — protected accounts cannot be deleted">
         <div className="flex flex-wrap gap-4 items-end max-w-md">
           <Field label="id (min 2)">
             <input className={inputClass} value={delId} onChange={(e) => setDelId(e.target.value)} />

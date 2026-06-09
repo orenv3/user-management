@@ -9,8 +9,12 @@ import jakarta.validation.constraints.Size;
  * Prefer using {@link UserTaskCommentRequest} in new code.
  */
 public record AddUserComment(
-        @NotBlank @Size(max = 120) String comment,
-        @NotNull Long taskId,
-        @NotNull Long userId
+        @NotBlank(message = "Comment is required")
+        @Size(max = 120, message = "Comment must be at most 120 characters")
+        String comment,
+        @NotNull(message = "Task id is required")
+        Long taskId,
+        @NotNull(message = "User id is required")
+        Long userId
 ) {
 }

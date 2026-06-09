@@ -1,8 +1,56 @@
-# User Management (Spring Boot + PostgreSQL + JWT)
+# User Management — Team Task App (Portfolio Demo)
+
+**Live demo:** `http://localhost:8080/` (when running locally or deployed)
+
+[Try the demo](#try-the-demo) · [For developers](#for-developers)
+
+---
+
+## For everyone
+
+A web app where **managers** assign tasks to team members, track progress, and discuss work in comments. **Team members** see only their own assignments, mark tasks complete, and leave comments.
+
+Built as a portfolio project to demonstrate secure, production-style full-stack development — not just a tutorial API.
+
+### Try the demo
+
+| Role | What you can do |
+|------|-----------------|
+| **Manager (Admin)** | Manage users, create and assign tasks, view all comments, see usage analytics |
+| **Team member (User)** | View assigned tasks, mark them complete, add comments |
+
+**Demo logins** (must match your deployed seed values — see [Seed data](#seed-data-optional)):
+
+| Role | Email | Password |
+|------|-------|----------|
+| Manager | `admin@example.com` | *(your `SEED_ADMIN2_PASSWORD`)* |
+| Team member | `user@example.com` | *(your `SEED_USER1_PASSWORD`)* |
+
+On the login page, click **Fill demo admin** or **Fill demo user** if those buttons are available.
+
+**Quick walkthrough (~2 minutes):**
+
+1. Log in as **Admin** → open **Tasks** → create a task and assign it to the demo user
+2. Log out → log in as **User** → open **My tasks** → mark the task complete and add a comment
+3. Log back in as **Admin** → open **Comments** (or **Tasks**) → confirm the update
+
+### Demo video
+
+A walkthrough video can appear on the login page when configured:
+
+1. Host your recording on YouTube (recommended) or place an MP4 at `frontend/public/demo.mp4`
+2. Set `VITE_DEMO_VIDEO_URL` in the **repo-root** [`.env`](.env) (same file as `JWT_SECRET` and `SEED_*`), e.g. `https://youtu.be/4f4ND3ctlD8` or `/demo.mp4`
+3. Rebuild (`docker compose up --build` or `npm run build` in `frontend/`)
+
+If no video URL is configured, the login page works normally without a video section.
+
+---
+
+## For developers
 
 User/task/comment management API with role-based access (**ADMIN** vs **USER**) and a JWT-based authentication flow. Designed to be docker-friendly and portfolio-ready.
 
-## Tech stack
+### Tech stack
 
 - **Java 17**, **Spring Boot 3.2**
 - **Spring Security** (stateless JWT)
@@ -13,7 +61,7 @@ User/task/comment management API with role-based access (**ADMIN** vs **USER**) 
 - **Docker** / **docker compose**
 - **JUnit 5 + Mockito** + `@SpringBootTest` integration tests
 
-## Architecture (high level)
+### Architecture (high level)
 
 ```mermaid
 flowchart TB
@@ -40,7 +88,7 @@ sequenceDiagram
   UI->>UI: logout clears token
 ```
 
-## Main features
+### Main features
 
 - **Authentication**: `POST /api/auth/login` returns a JWT (`AuthResponse`).
 - **Authorization**:
@@ -57,12 +105,12 @@ sequenceDiagram
   - Bean validation (`@Valid`) returns **400** with JSON error body (`ApiErrorResponse`)
   - Domain/service rules return **400/409** with JSON error body
 
-## API docs (Swagger)
+### API docs (Swagger)
 
 - Swagger UI: `http://localhost:8080/swagger-ui/index.html`
 - OpenAPI JSON: `http://localhost:8080/v3/api-docs`
 
-## Run locally (without Docker)
+### Run locally (without Docker)
 
 1. Start PostgreSQL locally and create DB `user_management_db`.
 2. Set JWT secret (Base64).
@@ -92,7 +140,7 @@ openssl rand -base64 32
 mvn spring-boot:run
 ```
 
-## Run with Docker Compose (recommended)
+### Run with Docker Compose (recommended)
 
 ```bash
 docker compose up --build
@@ -102,7 +150,7 @@ docker compose up --build
 - Swagger: `http://localhost:8080/swagger-ui/index.html`
 - Postgres exposed on host `5433` (container `5432`)
 
-## Tests
+### Tests
 
 ```bash
 mvn test
@@ -114,7 +162,7 @@ Tests run under the `test` profile (H2 in-memory), and include:
 - **Integration tests** (`@SpringBootTest` + `MockMvc`): `ApplicationApiIntegrationTest`
 - **Repository tests** (`@DataJpaTest`): `UserRepoTest`, `TaskRepoTest`, `CommentRepoTest`
 
-## Seed data (optional)
+### Seed data (optional)
 
 The startup seed runs only when the `dev-seed` profile is active. It reads credentials from environment variables (via `.env` for Docker, or your shell / IDE run config locally). **No seed emails or passwords are stored in source code.**
 
@@ -135,6 +183,13 @@ SPRING_PROFILES_ACTIVE=local,dev-seed mvn spring-boot:run
 
 Docker Compose already loads `.env` and activates `dev-seed` via `SPRING_PROFILES_ACTIVE`.
 
-### Frontend local env
+#### Frontend env (same file as backend)
 
-Copy [`frontend/.env.example`](frontend/.env.example) to `frontend/.env.local` and set `VITE_PRIVATE_ADMIN_EMAIL` to the same value as `SEED_ADMIN1_EMAIL` so your private admin email is redacted in action result panels only.
+All `VITE_*` variables belong in the **repo-root** [`.env`](.env) (see [`.env.example`](.env.example)). Vite reads them via `envDir` in `frontend/vite.config.ts`. Docker copies root `.env` during image build.
+
+- `VITE_PRIVATE_ADMIN_EMAIL` — same value as `SEED_ADMIN1_EMAIL`; redacted in action result panels
+- `VITE_SEED_*` — pre-fill demo login/register forms (match `SEED_USER1_*` / `SEED_ADMIN2_*`)
+- `VITE_DEMO_VIDEO_URL` — optional; YouTube URL (e.g. `https://youtu.be/4f4ND3ctlD8`) or local path `/demo.mp4`
+- `VITE_PROJECT_REPO_URL` — optional; GitHub repo URL for “About this project” link on login page
+
+Rebuild the image or restart the Vite dev server after changing any `VITE_*` value.

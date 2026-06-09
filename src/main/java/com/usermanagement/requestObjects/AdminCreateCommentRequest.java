@@ -8,7 +8,10 @@ import jakarta.validation.constraints.Size;
  * Admin command: add a comment to any task (user is derived from the task's assignee).
  */
 public record AdminCreateCommentRequest(
-        @NotBlank @Size(max = 120) String comment,
-        @NotNull Long taskId
+        @NotBlank(message = "Comment is required")
+        @Size(max = 120, message = "Comment must be at most 120 characters")
+        String comment,
+        @NotNull(message = "Task id is required")
+        Long taskId
 ) {
 }

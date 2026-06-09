@@ -52,6 +52,7 @@ class ApplicationApiIntegrationTest {
 
     @BeforeEach
     void seedUsers() {
+        persistUser("Private", "private-admin@test.com", true, true, "privatePass");
         admin = persistUser("Admin", "admin@example.com", true, true, "adminPass");
         persistUser("User", "user@example.com", false, true, "userPass");
     }
@@ -264,6 +265,127 @@ class ApplicationApiIntegrationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(containsString("can not comment")))
                 .andExpect(jsonPath("$.status").value(400));
+    }
+
+    @Test
+    void invalidCreateUserRequest_returns400WithFieldMessage() throws Exception {
+        String adminToken = login("admin@example.com", "adminPass");
+        String invalid = """
+                {"name":"","email":"x@y.com","isAdmin":false,"active":true,"password":"p"}
+                """;
+        mockMvc.perform(post("/api/auth/admin/registerUser")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalid))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("Name is required")))
+                .andExpect(jsonPath("$.fieldErrors.name").value(containsString("Name is required")));
+    }
+
+    @Test
+    void invalidCreateUserRequest_nameTooLong_returnsDescriptiveMessage() throws Exception {
+        String adminToken = login("admin@example.com", "adminPass");
+        String invalid = """
+                {"name":"this name is way too long","email":"x@y.com","isAdmin":false,"active":true,"password":"p"}
+                """;
+        mockMvc.perform(post("/api/auth/admin/registerUser")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalid))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("15 characters")));
+    }
+
+    @Test
+    void invalidCreateUserRequest_invalidEmail_returns400() throws Exception {
+        String adminToken = login("admin@example.com", "adminPass");
+        String invalid = """
+                {"name":"valid","email":"not-an-email","isAdmin":false,"active":true,"password":"p"}
+                """;
+        mockMvc.perform(post("/api/auth/admin/registerUser")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalid))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("valid address")))
+                .andExpect(jsonPath("$.fieldErrors.email").value(containsString("valid address")));
+    }
+
+    @Test
+    void login_invalidEmail_returns400() throws Exception {
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"not-an-email\",\"password\":\"x\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors.email").value(containsString("valid address")));
+    }
+
+    @Test
+    void updateUser_invalidEmail_returns400() throws Exception {
+        String adminToken = login("admin@example.com", "adminPass");
+        Users regular = userRepo.findByEmail("user@example.com").orElseThrow();
+        UpdateUserRequest update = new UpdateUserRequest(
+                regular.getId(),
+                null,
+                "bad-email",
+                null,
+                null,
+                null
+        );
+        mockMvc.perform(put("/api/userTable/admin/updateUser")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(update)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors.email").value(containsString("valid address")));
+    }
+
+    @Test
+    void allUserList_excludesPrivateAdmin() throws Exception {
+        String adminToken = login("admin@example.com", "adminPass");
+        mockMvc.perform(get("/api/userTable/admin/allUserList")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[*].email").value(org.hamcrest.Matchers.not(containsString("private-admin@test.com"))));
+    }
+
+    @Test
+    void updatePrivateAdmin_returns403() throws Exception {
+        String adminToken = login("admin@example.com", "adminPass");
+        Users privateAdmin = userRepo.findByEmail("private-admin@test.com").orElseThrow();
+        UpdateUserRequest update = new UpdateUserRequest(
+                privateAdmin.getId(),
+                "hacked",
+                null,
+                null,
+                null,
+                null
+        );
+        mockMvc.perform(put("/api/userTable/admin/updateUser")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(update)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value(containsString("protected")));
+    }
+
+    @Test
+    void analytics_recordPageView_andAdminSummary() throws Exception {
+        mockMvc.perform(post("/api/analytics/event")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"eventType":"PAGE_VIEW","path":"/login","sessionId":"test-session"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.eventType").value("PAGE_VIEW"));
+
+        String adminToken = login("admin@example.com", "adminPass");
+        mockMvc.perform(get("/api/analytics/admin/summary")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalPageViews").isNumber())
+                .andExpect(jsonPath("$.totalLogins").isNumber());
     }
 
     @Test

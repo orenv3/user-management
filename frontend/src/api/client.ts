@@ -1,7 +1,17 @@
+import type { ApiErrorResponse } from "./types";
+
+export class ApiClientError extends Error {
+  readonly fieldErrors?: Record<string, string> | null;
+
+  constructor(message: string, fieldErrors?: Record<string, string> | null) {
+    super(message);
+    this.name = "ApiClientError";
+    this.fieldErrors = fieldErrors;
+  }
+}
+
 export type { AuthResponse } from "./types";
 export type { ApiErrorResponse } from "./types";
-
-import type { ApiErrorResponse } from "./types";
 
 function getToken(): string | null {
   return sessionStorage.getItem("token");
@@ -37,7 +47,7 @@ async function parseJsonOrThrow(res: Response) {
     err?.message ??
     (typeof body === "string" ? body : null) ??
     `Request failed (${res.status})`;
-  throw new Error(message);
+  throw new ApiClientError(message, err?.fieldErrors ?? null);
 }
 
 function authHeaders(): Record<string, string> {

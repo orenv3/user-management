@@ -2,6 +2,8 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./auth/AuthContext";
 import AppShell from "./components/AppShell";
 import { AdminRoute, ProtectedRoute, UserRoute } from "./components/ProtectedRoute";
+import { usePageTracking } from "./hooks/usePageTracking";
+import AnalyticsPage from "./pages/AnalyticsPage";
 import CommentsPage from "./pages/CommentsPage";
 import LoginPage from "./pages/LoginPage";
 import MyCommentsPage from "./pages/MyCommentsPage";
@@ -10,27 +12,36 @@ import OverviewPage from "./pages/OverviewPage";
 import TasksPage from "./pages/TasksPage";
 import UsersPage from "./pages/UsersPage";
 
-export default function App() {
+function AppRoutes() {
+  usePageTracking();
+
   return (
-    <AuthProvider>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route
+        element={
+          <ProtectedRoute>
+            <AppShell />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/" element={<OverviewPage />} />
         <Route
+          path="/analytics"
           element={
-            <ProtectedRoute>
-              <AppShell />
-            </ProtectedRoute>
+            <AdminRoute>
+              <AnalyticsPage />
+            </AdminRoute>
           }
-        >
-          <Route path="/" element={<OverviewPage />} />
-          <Route
-            path="/users"
-            element={
-              <AdminRoute>
-                <UsersPage />
-              </AdminRoute>
-            }
-          />
+        />
+        <Route
+          path="/users"
+          element={
+            <AdminRoute>
+              <UsersPage />
+            </AdminRoute>
+          }
+        />
           <Route
             path="/tasks"
             element={
@@ -66,6 +77,13 @@ export default function App() {
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppRoutes />
     </AuthProvider>
   );
 }
