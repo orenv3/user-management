@@ -1,6 +1,10 @@
 # User Management — Team Task App (Portfolio Demo)
 
-**Live demo:** `http://localhost:8080/` (when running locally or deployed)
+**Live demo:** [http://user-managment-app-oren.duckdns.org:8080/login](http://user-managment-app-oren.duckdns.org:8080/login) (hosted on a GCE VM)
+
+**Docker image:** [`orenv3/user-managment-app:1.1`](https://hub.docker.com/r/orenv3/user-managment-app)
+
+**Local dev:** `http://localhost:8080/`
 
 [Try the demo](#try-the-demo) · [For developers](#for-developers)
 
@@ -13,6 +17,8 @@ A web app where **managers** assign tasks to team members, track progress, and d
 Built as a portfolio project to demonstrate secure, production-style full-stack development — not just a tutorial API.
 
 ### Try the demo
+
+Open the [live app](http://user-managment-app-oren.duckdns.org:8080/login) or run it locally (see [Run with Docker Compose](#run-with-docker-compose-recommended)).
 
 | Role | What you can do |
 |------|-----------------|
@@ -142,8 +148,17 @@ mvn spring-boot:run
 
 ### Run with Docker Compose (recommended)
 
+Build from source:
+
 ```bash
 docker compose up --build
+```
+
+Or pull the published image and run with Compose (replace `build: .` with `image: orenv3/user-managment-app:1.1` under the `app` service in `docker-compose.yml`):
+
+```bash
+docker pull orenv3/user-managment-app:1.1
+docker compose up
 ```
 
 - App: `http://localhost:8080/`

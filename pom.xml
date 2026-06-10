@@ -20,10 +20,6 @@
 		<lombok.mapstruct.binding.version>0.2.0</lombok.mapstruct.binding.version>
 		<mapstruct.version>1.6.3</mapstruct.version>
 		<springdoc.version>2.5.0</springdoc.version>
-		<!--		<properties>-->
-		<!--			<maven.compiler.source>1.17</maven.compiler.source>-->
-		<!--			<maven.compiler.target>1.17</maven.compiler.target>-->
-		<!--		</properties>-->
 	</properties>
 	<dependencies>
 		<dependency>
@@ -208,34 +204,4 @@
 		  </plugin>
 		</plugins>
 	  </build>
-	<!-- <build>
-
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<annotationProcessorPaths>
-						<path>
-							<groupId>org.mapstruct</groupId>
-							<artifactId>mapstruct-processor</artifactId>
-							<version>1.6.3</version>
-						</path>
-					</annotationProcessorPaths>
-					<excludes>
-						<exclude>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-						</exclude>
-					</excludes>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-
-			</plugin>
-		</plugins>
-	</build> -->
-
 </project>
