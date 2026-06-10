@@ -113,8 +113,35 @@ sequenceDiagram
 
 ### API docs (Swagger)
 
+**Local:**
+
 - Swagger UI: `http://localhost:8080/swagger-ui/index.html`
 - OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+
+**Live (GCE):**
+
+- Swagger UI: [http://user-managment-app-oren.duckdns.org:8080/swagger-ui/index.html](http://user-managment-app-oren.duckdns.org:8080/swagger-ui/index.html)
+- OpenAPI JSON: `http://user-managment-app-oren.duckdns.org:8080/v3/api-docs`
+
+Logging into the web app does **not** pass a token to Swagger — the UI stores the JWT in `sessionStorage`, and the API is stateless.
+
+**Test protected endpoints in Swagger:**
+
+1. Open Swagger UI (local or live).
+2. Under **AuthenticationController**, run **POST** `/api/auth/login` with demo credentials (see [Seed data](#seed-data-optional) or the [demo logins](#try-the-demo) table).
+3. Copy the `token` value from the response.
+4. Click **Authorize** (lock icon) and paste the JWT into `bearerAuth` (token only — no `Bearer ` prefix).
+5. Call protected endpoints; **GET** `/api/auth/me` is a quick sanity check.
+6. Role matters: `/admin/` endpoints need an **ADMIN** token; `/user/` endpoints need a **USER** token.
+
+Example login body:
+
+```json
+{
+  "email": "admin@example.com",
+  "password": "<your SEED_ADMIN2_PASSWORD>"
+}
+```
 
 ### Run locally (without Docker)
 
