@@ -14,7 +14,7 @@ public record UpdateUserRequest(
         @NotNull(message = "User id is required")
         @Min(value = 2, message = "User id must be at least 2 (protected accounts cannot be edited)")
         Long id,
-        @Size(max = 15, message = "Name must be at most 15 characters")
+        @Size(max = 20, message = "Name must be at most 15 characters")
         String name,
         @Email(message = "Email must be a valid address (e.g. user@example.com)")
         String email,

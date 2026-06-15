@@ -12,14 +12,19 @@ import com.usermanagement.responseObjects.CommentsResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -108,6 +113,32 @@ class CommentServiceTest {
 
         assertThat(out.err()).contains("successfully");
         verify(commentRepo).save(any(Comment.class));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void getAllUserCommentListViaNativeQuery_joinsTaskAndFiltersByAssignee() {
+        TypedQuery<Comment> typedQuery = org.mockito.Mockito.mock(TypedQuery.class);
+        ArgumentCaptor<String> jpqlCaptor = ArgumentCaptor.forClass(String.class);
+
+        Comment comment = new Comment();
+        Task task = new Task();
+        task.setId(3L);
+        comment.setTaskId(task);
+
+        when(entityManager.createQuery(jpqlCaptor.capture(), eq(Comment.class))).thenReturn(typedQuery);
+        when(typedQuery.setParameter("userId", 4L)).thenReturn(typedQuery);
+        when(typedQuery.getResultList()).thenReturn(List.of(comment));
+        when(entityMapper.toCommentsResponseList(List.of(comment)))
+                .thenReturn(List.of(new CommentsResponse(new java.util.Date(), "n/a", 4L, 3L, "n/a", null)));
+
+        List<CommentsResponse> out = commentService.getAllUserCommentListViaNativeQuery(4L);
+
+        assertThat(out).hasSize(1);
+        assertThat(jpqlCaptor.getValue()).contains("JOIN c.taskId t");
+        assertThat(jpqlCaptor.getValue()).contains("t.assignee.id = :userId");
+        assertThat(jpqlCaptor.getValue()).doesNotContain("c.taskId = t.id");
+        verify(typedQuery).setParameter("userId", 4L);
     }
 }
 

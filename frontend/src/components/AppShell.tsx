@@ -1,21 +1,10 @@
 import { useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
+import HelpHint from "./HelpHint";
+import AppFooter from "./AppFooter";
+import { adminNavLinks, hints, userNavLinks } from "../content/hints";
 import { displayEmail } from "../utils/redactSensitiveInResults";
-
-const adminLinks = [
-  { to: "/", label: "Overview" },
-  { to: "/users", label: "Users" },
-  { to: "/tasks", label: "Tasks" },
-  { to: "/comments", label: "Comments" },
-  { to: "/analytics", label: "Analytics" },
-];
-
-const userLinks = [
-  { to: "/", label: "Overview" },
-  { to: "/my-tasks", label: "My tasks" },
-  { to: "/my-comments", label: "My comments" },
-];
 
 function NavLinks({
   links,
@@ -23,7 +12,7 @@ function NavLinks({
   onNavigate,
   className,
 }: {
-  links: { to: string; label: string }[];
+  links: readonly { to: string; label: string; hint: string }[];
   pathname: string;
   onNavigate?: () => void;
   className?: string;
@@ -31,18 +20,21 @@ function NavLinks({
   return (
     <nav className={className}>
       {links.map((l) => (
-        <Link
-          key={l.to}
-          to={l.to}
-          onClick={onNavigate}
-          className={`block rounded-lg px-3 py-2 text-sm ${
-            pathname === l.to
-              ? "bg-indigo-600/25 text-indigo-200 border border-indigo-500/40"
-              : "text-slate-300 hover:bg-slate-900"
-          }`}
-        >
-          {l.label}
-        </Link>
+        <div key={l.to} className="flex items-center gap-1">
+          <Link
+            to={l.to}
+            onClick={onNavigate}
+            title={l.hint}
+            className={`flex-1 block rounded-lg px-3 py-2 text-sm ${
+              pathname === l.to
+                ? "bg-indigo-600/25 text-indigo-200 border border-indigo-500/40"
+                : "text-slate-300 hover:bg-slate-900"
+            }`}
+          >
+            {l.label}
+          </Link>
+          <HelpHint text={l.hint} className="shrink-0 mr-1" />
+        </div>
       ))}
     </nav>
   );
@@ -59,7 +51,7 @@ export default function AppShell() {
     navigate("/login", { replace: true });
   }
 
-  const links = me?.role === "ADMIN" ? adminLinks : userLinks;
+  const links = me?.role === "ADMIN" ? adminNavLinks : userNavLinks;
 
   function closeMobileNav() {
     setMobileNavOpen(false);
@@ -109,6 +101,7 @@ export default function AppShell() {
               type="button"
               className="md:hidden rounded-lg border border-slate-700 px-2 py-1.5 text-sm text-slate-300 hover:bg-slate-900 shrink-0"
               onClick={() => setMobileNavOpen(true)}
+              title={hints.nav.menu}
               aria-label="Open navigation"
             >
               Menu
@@ -125,35 +118,48 @@ export default function AppShell() {
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            <a
-              className="text-sm underline text-slate-300 hover:text-slate-100 hidden sm:inline"
-              href="/swagger-ui/index.html"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Swagger
-            </a>
-            <a
-              className="text-sm underline text-slate-300 hover:text-slate-100 sm:hidden"
-              href="/swagger-ui/index.html"
-              target="_blank"
-              rel="noreferrer"
-            >
-              API
-            </a>
-            <button
-              type="button"
-              className="rounded-lg border border-slate-700 px-3 py-2 text-sm hover:bg-slate-900"
-              onClick={handleLogout}
-            >
-              Logout
-            </button>
+            <span className="hidden sm:inline-flex items-center gap-1">
+              <a
+                className="text-sm underline text-slate-300 hover:text-slate-100"
+                href="/swagger-ui/index.html"
+                target="_blank"
+                rel="noreferrer"
+                title={hints.nav.swagger}
+              >
+                Swagger
+              </a>
+              <HelpHint text={hints.nav.swagger} />
+            </span>
+            <span className="sm:hidden inline-flex items-center gap-1">
+              <a
+                className="text-sm underline text-slate-300 hover:text-slate-100"
+                href="/swagger-ui/index.html"
+                target="_blank"
+                rel="noreferrer"
+                title={hints.nav.swagger}
+              >
+                API
+              </a>
+              <HelpHint text={hints.nav.swagger} />
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <button
+                type="button"
+                className="rounded-lg border border-slate-700 px-3 py-2 text-sm hover:bg-slate-900"
+                onClick={handleLogout}
+                title={hints.nav.logout}
+              >
+                Logout
+              </button>
+              <HelpHint text={hints.nav.logout} />
+            </span>
           </div>
         </header>
 
         <main className="flex-1 overflow-auto px-4 sm:px-6 py-6 sm:py-8 w-full max-w-6xl">
           <Outlet />
         </main>
+        <AppFooter />
       </div>
     </div>
   );

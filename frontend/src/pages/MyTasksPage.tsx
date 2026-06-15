@@ -6,6 +6,7 @@ import DataTable from "../components/DataTable";
 import { Field, btnPrimary, inputClass } from "../components/Field";
 import PageSection from "../components/PageSection";
 import ResultPanel from "../components/ResultPanel";
+import { hints } from "../content/hints";
 import { useAction } from "../hooks/useAction";
 
 export default function MyTasksPage() {
@@ -39,8 +40,12 @@ export default function MyTasksPage() {
     <div className="space-y-8">
       <h1 className="text-2xl font-semibold">My tasks</h1>
 
-      <PageSection title="Assigned tasks" description="GET /api/task/user/allTaskList/{assignee}">
-        <Field label="assignee (user id)">
+      <PageSection
+        title="Assigned tasks"
+        description={hints.myTasks.assigned}
+        devDescription={hints.myTasks.devAssigned}
+      >
+        <Field label="assignee (user id)" hint={hints.myTasks.assignee}>
           <input className={inputClass} value={assignee} onChange={(e) => setAssignee(e.target.value)} />
         </Field>
         <button
@@ -52,7 +57,7 @@ export default function MyTasksPage() {
             )
           }
         >
-          Run
+          {hints.myTasks.loadTasks}
         </button>
         <div className="mt-4">
           <DataTable columns={columns} rows={tasks} />
@@ -60,9 +65,13 @@ export default function MyTasksPage() {
         <ResultPanel {...listAction} />
       </PageSection>
 
-      <PageSection title="Mark task complete" description="PUT /api/task/user/updateComplete?taskId=">
+      <PageSection
+        title="Mark task complete"
+        description={hints.myTasks.complete}
+        devDescription={hints.myTasks.devComplete}
+      >
         <div className="flex flex-wrap gap-4 items-end">
-          <Field label="taskId">
+          <Field label="taskId" hint={hints.myTasks.taskId} help={hints.common.idFromTable}>
             <input className={inputClass} value={taskId} onChange={(e) => setTaskId(e.target.value)} />
           </Field>
           <button
@@ -74,7 +83,7 @@ export default function MyTasksPage() {
               )
             }
           >
-            Run
+            {hints.myTasks.markComplete}
           </button>
         </div>
         <ResultPanel {...completeAction} />

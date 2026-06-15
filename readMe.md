@@ -32,7 +32,7 @@ Open the [live app](http://user-managment-app-oren.duckdns.org:8080/login) or ru
 | Manager | `admin@example.com` | *(your `SEED_ADMIN2_PASSWORD`)* |
 | Team member | `user@example.com` | *(your `SEED_USER1_PASSWORD`)* |
 
-On the login page, click **Fill demo admin** or **Fill demo user** if those buttons are available.
+On the login page, click **Use manager account** or **Use team member account**, then **Login**.
 
 **Quick walkthrough (~2 minutes):**
 

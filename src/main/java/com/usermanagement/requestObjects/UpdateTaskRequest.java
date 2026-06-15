@@ -11,9 +11,9 @@ public record UpdateTaskRequest(
 
         @NotNull(message = "Task id is required")
         Long id,
-        @Size(max = 15, message = "Title must be at most 15 characters")
+        @Size(max = 30, message = "Title must be at most 15 characters")
         String title,
-        @Size(max = 40, message = "Description must be at most 40 characters")
+        @Size(max = 80, message = "Description must be at most 40 characters")
         String description,
         String status
 

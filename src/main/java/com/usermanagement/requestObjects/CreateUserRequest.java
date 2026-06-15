@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Size;
 
 public record CreateUserRequest(
                                 @NotBlank(message = "Name is required")
-                                @Size(max = 15, message = "Name must be at most 15 characters")
+                                @Size(max = 20, message = "Name must be at most 15 characters")
                                 String name,
                                 @NotBlank(message = "Email is required")
                                 @Email(message = "Email must be a valid address (e.g. user@example.com)")

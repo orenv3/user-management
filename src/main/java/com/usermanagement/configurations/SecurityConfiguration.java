@@ -54,20 +54,13 @@ public class SecurityConfiguration {
                 .permitAll()
                 .requestMatchers(req->  req.getRequestURI().contains("api-docs"))
                 .permitAll()
-                .requestMatchers(req -> {
-                    String uri = req.getRequestURI();
-                    return uri.equals("/")
-                            || uri.equals("/login")
-                            || uri.equals("/index.html")
-                            || uri.startsWith("/assets/")
-                            || uri.equals("/favicon.ico");
-                }).permitAll()
                 .requestMatchers(req->  req.getRequestURI().contains("/auth/login"))
                 .permitAll()
                 .requestMatchers(req-> req.getRequestURI().equals("/api/analytics/event"))
                 .permitAll()
                 .requestMatchers(req->  req.getRequestURI().contains("/user/")).hasAuthority("USER")
                 .requestMatchers(req-> req.getRequestURI().contains("/admin/")).hasAuthority("ADMIN")
+                .requestMatchers(req -> isPublicSpaRoute(req.getRequestURI())).permitAll()
                 .anyRequest()
                 .authenticated()
                 .and()
@@ -82,6 +75,17 @@ public class SecurityConfiguration {
 
 
         return http.build();
+    }
+
+    /**
+     * React Router paths (e.g. /users, /tasks) must be reachable without a JWT so the
+     * browser can load index.html on refresh; the SPA enforces login client-side.
+     */
+    private static boolean isPublicSpaRoute(String uri) {
+        if (uri.startsWith("/api/")) {
+            return false;
+        }
+        return !uri.contains("swagger-ui") && !uri.contains("api-docs");
     }
 
     private static String safeMessage(Exception ex) {

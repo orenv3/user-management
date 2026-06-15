@@ -7,9 +7,9 @@ import jakarta.validation.constraints.Size;
 
 public record CreateTaskRequest(
         @NotBlank(message = "Title is required")
-        @Size(max = 15, message = "Title must be at most 15 characters")
+        @Size(max = 30, message = "Title must be at most 15 characters")
         String title,
-        @Size(max = 40, message = "Description must be at most 40 characters")
+        @Size(max = 100, message = "Description must be at most 40 characters")
         String description,
         String status
 ) {

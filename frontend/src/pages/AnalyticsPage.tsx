@@ -2,9 +2,11 @@ import { useCallback, useEffect, useState } from "react";
 import { apiGet } from "../api/client";
 import type { ActivityEventResponse, ActivitySummaryResponse } from "../api/types";
 import DataTable from "../components/DataTable";
+import HelpHint from "../components/HelpHint";
 import { Field, btnPrimary, btnSecondary, inputClass } from "../components/Field";
 import PageSection from "../components/PageSection";
 import ResultPanel from "../components/ResultPanel";
+import { hints } from "../content/hints";
 import { useAction } from "../hooks/useAction";
 
 type PagedEvents = {
@@ -57,13 +59,17 @@ export default function AnalyticsPage() {
     <div className="space-y-8">
       <h1 className="text-2xl font-semibold">Analytics</h1>
 
-      <PageSection title="Summary" description="GET /api/analytics/admin/summary">
+      <PageSection
+        title="Summary"
+        description={hints.analytics.summary}
+        devDescription={hints.analytics.devSummary}
+      >
         {summary ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 max-w-4xl">
-            <StatCard label="Page views" value={summary.totalPageViews} />
-            <StatCard label="Unique sessions" value={summary.uniqueSessions} />
-            <StatCard label="Logins" value={summary.totalLogins} />
-            <StatCard label="API actions" value={summary.totalActions} />
+            <StatCard label="Page views" value={summary.totalPageViews} hint={hints.analytics.pageViews} />
+            <StatCard label="Unique sessions" value={summary.uniqueSessions} hint={hints.analytics.uniqueSessions} />
+            <StatCard label="Logins" value={summary.totalLogins} hint={hints.analytics.logins} />
+            <StatCard label="API actions" value={summary.totalActions} hint={hints.analytics.apiActions} />
           </div>
         ) : (
           <p className="text-sm text-slate-400">Loading summary...</p>
@@ -98,21 +104,33 @@ export default function AnalyticsPage() {
           </div>
         )}
 
-        <button type="button" className={`${btnSecondary} mt-4`} onClick={() => loadSummary()}>
-          Refresh summary
-        </button>
+        <span className="inline-flex items-center gap-1 mt-4">
+          <button
+            type="button"
+            className={btnSecondary}
+            onClick={() => loadSummary()}
+            title={hints.common.refreshSummary}
+          >
+            Refresh summary
+          </button>
+          <HelpHint text={hints.common.refreshSummary} />
+        </span>
         <ResultPanel {...summaryPanel} />
       </PageSection>
 
-      <PageSection title="Event log" description="GET /api/analytics/admin/events">
+      <PageSection
+        title="Event log"
+        description={hints.analytics.eventLog}
+        devDescription={hints.analytics.devEvents}
+      >
         <div className="flex flex-wrap gap-4 items-end mb-4">
-          <Field label="pageNumber">
+          <Field label="pageNumber" hint="Page number (starts at 0).">
             <input className={inputClass} value={pageNumber} onChange={(e) => setPageNumber(e.target.value)} />
           </Field>
-          <Field label="pageSize">
+          <Field label="pageSize" hint="How many events per page.">
             <input className={inputClass} value={pageSize} onChange={(e) => setPageSize(e.target.value)} />
           </Field>
-          <Field label="eventType (optional)">
+          <Field label="eventType (optional)" hint={hints.analytics.eventType}>
             <select className={inputClass} value={eventType} onChange={(e) => setEventType(e.target.value)}>
               <option value="">All</option>
               <option value="PAGE_VIEW">PAGE_VIEW</option>
@@ -121,7 +139,7 @@ export default function AnalyticsPage() {
             </select>
           </Field>
           <button type="button" className={btnPrimary} onClick={() => loadEvents()}>
-            Run
+            {hints.analytics.loadEvents}
           </button>
         </div>
         <DataTable columns={eventColumns} rows={events} />
@@ -131,10 +149,13 @@ export default function AnalyticsPage() {
   );
 }
 
-function StatCard({ label, value }: { label: string; value: number }) {
+function StatCard({ label, value, hint }: { label: string; value: number; hint: string }) {
   return (
     <div className="rounded-lg border border-slate-800 bg-slate-950/50 px-4 py-3">
-      <div className="text-xs text-slate-400">{label}</div>
+      <div className="text-xs text-slate-400 flex items-center gap-1">
+        {label}
+        <HelpHint text={hint} />
+      </div>
       <div className="text-2xl font-semibold text-slate-100 mt-1">{value}</div>
     </div>
   );

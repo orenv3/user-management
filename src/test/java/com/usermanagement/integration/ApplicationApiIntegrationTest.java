@@ -28,6 +28,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -243,6 +244,73 @@ class ApplicationApiIntegrationTest {
     }
 
     @Test
+    void user_nativeCommentList_returnsCommentsOnAssignedNonArchivedTasks() throws Exception {
+        String adminToken = login("admin@example.com", "adminPass");
+        mockMvc.perform(post("/api/task/admin/createTask")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new CreateTaskRequest("native-q", "d", null))))
+                .andExpect(status().isOk());
+        Task task = taskRepo.findByTitle("native-q").orElseThrow();
+        Users u = userRepo.findByEmail("user@example.com").orElseThrow();
+        mockMvc.perform(put("/api/task/admin/assignUser" + task.getId() + "/" + u.getId())
+                .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk());
+
+        String userToken = login("user@example.com", "userPass");
+        mockMvc.perform(post("/api/comment/user/commentMyTask")
+                        .header("Authorization", "Bearer " + userToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                new UserTaskCommentRequest("via native list", task.getId(), u.getId()))))
+                .andExpect(status().isOk());
+
+        String body = mockMvc.perform(get("/api/comment/user/userCommentListViaNativeQuery/" + u.getId())
+                        .header("Authorization", "Bearer " + userToken))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        assertThat(body).contains("via native list");
+    }
+
+    @Test
+    void user_nativeCommentList_excludesCommentsOnArchivedTasks() throws Exception {
+        String adminToken = login("admin@example.com", "adminPass");
+        mockMvc.perform(post("/api/task/admin/createTask")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new CreateTaskRequest("archived", "d", null))))
+                .andExpect(status().isOk());
+        Task task = taskRepo.findByTitle("archived").orElseThrow();
+        Users u = userRepo.findByEmail("user@example.com").orElseThrow();
+        mockMvc.perform(put("/api/task/admin/assignUser" + task.getId() + "/" + u.getId())
+                .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk());
+
+        String userToken = login("user@example.com", "userPass");
+        mockMvc.perform(post("/api/comment/user/commentMyTask")
+                        .header("Authorization", "Bearer " + userToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                new UserTaskCommentRequest("should hide", task.getId(), u.getId()))))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(put("/api/task/admin/updateTask")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                new UpdateTaskRequest(task.getId(), null, null, "ARCHIVED"))))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/comment/user/userCommentListViaNativeQuery/" + u.getId())
+                        .header("Authorization", "Bearer " + userToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.comment == 'should hide')]").doesNotExist());
+    }
+
+    @Test
     void user_cannotCommentOnTaskAssignedToSomeoneElse() throws Exception {
         String adminToken = login("admin@example.com", "adminPass");
         mockMvc.perform(post("/api/task/admin/createTask")
@@ -455,5 +523,18 @@ class ApplicationApiIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("PENDING"))
                 .andExpect(jsonPath("$.title").value("new-title"));
+    }
+
+    @Test
+    void spaRoute_users_servesIndexWithoutAuth() throws Exception {
+        mockMvc.perform(get("/users"))
+                .andExpect(status().isOk())
+                .andExpect(forwardedUrl("/index.html"));
+    }
+
+    @Test
+    void apiRoute_stillRequiresAuth() throws Exception {
+        mockMvc.perform(get("/api/userTable/admin/allUserList"))
+                .andExpect(status().isUnauthorized());
     }
 }

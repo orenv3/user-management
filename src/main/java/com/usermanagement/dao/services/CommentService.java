@@ -92,16 +92,18 @@ public class CommentService {
         return entityMapper.toCommentsResponseList(commentList);
     }
 
+    private static final String USER_COMMENTS_ON_ASSIGNED_TASKS_JPQL = """
+            SELECT c
+            FROM Comment c
+            JOIN c.taskId t
+            WHERE t.status <> 'ARCHIVED'
+              AND t.assignee.id = :userId
+            """;
+
     public List<CommentsResponse> getAllUserCommentListViaNativeQuery(long userId) {
         log.info("Get all user comments via native query requested. userId={}", userId);
-        List<Comment> commentList = entityManager.createQuery("""
-    SELECT c 
-     FROM Comment c 
-     WHERE c.taskId IN ( SELECT t.id
-     FROM Task t 
-     WHERE c.taskId = t.id 
-     AND t.status != 'ARCHIVED' 
-     AND t.assignee.id = :userId)""", Comment.class)
+        List<Comment> commentList = entityManager
+                .createQuery(USER_COMMENTS_ON_ASSIGNED_TASKS_JPQL, Comment.class)
                 .setParameter("userId", userId)
                 .getResultList();
 

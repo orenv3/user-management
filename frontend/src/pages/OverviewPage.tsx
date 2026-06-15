@@ -1,37 +1,33 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
+import HelpHint from "../components/HelpHint";
 import PageSection from "../components/PageSection";
+import { adminNavLinks, hints, userNavLinks } from "../content/hints";
 import { displayEmail } from "../utils/redactSensitiveInResults";
 
 export default function OverviewPage() {
   const { me } = useAuth();
 
-  const adminLinks = [
-    { to: "/users", label: "Users", desc: "Add, update, and remove team members" },
-    { to: "/tasks", label: "Tasks", desc: "Create work and assign it to your team" },
-    { to: "/comments", label: "Comments", desc: "View and manage task discussions" },
-    { to: "/analytics", label: "Analytics", desc: "Page views, logins, and user actions" },
-  ];
-
-  const userLinks = [
-    { to: "/my-tasks", label: "My tasks", desc: "View assigned work and mark tasks complete" },
-    { to: "/my-comments", label: "My comments", desc: "Comment on your tasks and read replies" },
-  ];
-
-  const links = me?.role === "ADMIN" ? adminLinks : userLinks;
+  const links = me?.role === "ADMIN" ? adminNavLinks.slice(1) : userNavLinks.slice(1);
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Overview</h1>
 
-      <PageSection title="Session" description="Your account">
+      <PageSection title="Session" description={hints.overview.session}>
         {me ? (
           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm max-w-md">
-            <dt className="text-slate-400">User ID</dt>
+            <dt className="text-slate-400 flex items-center gap-1">
+              User ID
+              <HelpHint text={hints.overview.userIdHelp} />
+            </dt>
             <dd className="text-slate-100">{me.userId}</dd>
             <dt className="text-slate-400">Email</dt>
             <dd className="text-slate-100">{displayEmail(me.email)}</dd>
-            <dt className="text-slate-400">Role</dt>
+            <dt className="text-slate-400 flex items-center gap-1">
+              Role
+              <HelpHint text={hints.overview.roleHelp} />
+            </dt>
             <dd className="text-slate-100">{me.role}</dd>
           </dl>
         ) : (
@@ -39,14 +35,19 @@ export default function OverviewPage() {
         )}
       </PageSection>
 
-      <PageSection title="Quick links">
+      <PageSection title="Quick links" description={hints.overview.quickLinks}>
         <ul className="space-y-3">
           {links.map((l) => (
-            <li key={l.to}>
-              <Link to={l.to} className="text-indigo-300 hover:text-indigo-200 font-medium">
+            <li key={l.to} className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <Link
+                to={l.to}
+                className="text-indigo-300 hover:text-indigo-200 font-medium"
+                title={l.hint}
+              >
                 {l.label}
               </Link>
-              <span className="text-slate-500 text-sm"> — {l.desc}</span>
+              <span className="text-slate-500 text-sm">— {l.hint}</span>
+              <HelpHint text={l.hint} />
             </li>
           ))}
         </ul>

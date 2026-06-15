@@ -6,6 +6,7 @@ import DataTable from "../components/DataTable";
 import { Field, btnPrimary, inputClass } from "../components/Field";
 import PageSection from "../components/PageSection";
 import ResultPanel from "../components/ResultPanel";
+import { hints } from "../content/hints";
 import { useAction } from "../hooks/useAction";
 
 export default function MyCommentsPage() {
@@ -13,7 +14,6 @@ export default function MyCommentsPage() {
   const [userId, setUserId] = useState("");
   const commentAction = useAction();
   const listAction = useAction();
-  const nativeAction = useAction();
 
   const [comment, setComment] = useState("");
   const [taskId, setTaskId] = useState("");
@@ -43,9 +43,13 @@ export default function MyCommentsPage() {
     <div className="space-y-8">
       <h1 className="text-2xl font-semibold">My comments</h1>
 
-      <PageSection title="Comment on my task" description="POST /api/comment/user/commentMyTask">
+      <PageSection
+        title="Comment on my task"
+        description={hints.myComments.post}
+        devDescription={hints.myComments.devPost}
+      >
         <div className="grid gap-4 max-w-xl">
-          <Field label="comment (max 120)">
+          <Field label="comment (max 120)" hint={hints.myComments.commentText}>
             <textarea
               className={inputClass}
               rows={3}
@@ -53,10 +57,10 @@ export default function MyCommentsPage() {
               onChange={(e) => setComment(e.target.value)}
             />
           </Field>
-          <Field label="taskId">
+          <Field label="taskId" hint={hints.myComments.taskId} help={hints.common.idFromTable}>
             <input className={inputClass} value={taskId} onChange={(e) => setTaskId(e.target.value)} />
           </Field>
-          <Field label="userId">
+          <Field label="userId" hint={hints.myComments.userId}>
             <input className={inputClass} value={commentUserId} onChange={(e) => setCommentUserId(e.target.value)} />
           </Field>
         </div>
@@ -72,14 +76,18 @@ export default function MyCommentsPage() {
             commentAction.run(() => apiPost("/api/comment/user/commentMyTask", body));
           }}
         >
-          Run
+          {hints.myComments.postComment}
         </button>
         <ResultPanel {...commentAction} />
       </PageSection>
 
-      <PageSection title="My comments (JPQL)" description="GET .../userCommentList/{userId}">
+      <PageSection
+        title="My comment history"
+        description={hints.myComments.listJpql}
+        devDescription={hints.myComments.devListJpql}
+      >
         <div className="flex flex-wrap gap-4 items-end">
-          <Field label="userId">
+          <Field label="userId" hint={hints.myComments.userId}>
             <input className={inputClass} value={userId} onChange={(e) => setUserId(e.target.value)} />
           </Field>
           <button
@@ -91,7 +99,7 @@ export default function MyCommentsPage() {
               )
             }
           >
-            Run
+            {hints.myComments.loadComments}
           </button>
         </div>
         {listAction.result !== undefined && (
@@ -100,36 +108,6 @@ export default function MyCommentsPage() {
           </div>
         )}
         <ResultPanel loading={listAction.loading} error={listAction.error} result={listAction.result} />
-      </PageSection>
-
-      <PageSection
-        title="My comments (native query)"
-        description="GET .../userCommentListViaNativeQuery/{userId}"
-      >
-        <div className="flex flex-wrap gap-4 items-end">
-          <Field label="userId">
-            <input className={inputClass} value={userId} onChange={(e) => setUserId(e.target.value)} />
-          </Field>
-          <button
-            type="button"
-            className={btnPrimary}
-            onClick={() =>
-              nativeAction.run(() =>
-                apiGet<CommentsResponse[]>(
-                  `/api/comment/user/userCommentListViaNativeQuery/${userId}`
-                )
-              )
-            }
-          >
-            Run
-          </button>
-        </div>
-        {nativeAction.result !== undefined && (
-          <div className="mt-4">
-            <DataTable columns={columns} rows={(nativeAction.result as CommentsResponse[]) ?? []} />
-          </div>
-        )}
-        <ResultPanel loading={nativeAction.loading} error={nativeAction.error} result={nativeAction.result} />
       </PageSection>
     </div>
   );

@@ -4,7 +4,10 @@ import { ApiClientError, apiPost, setToken } from "../api/client";
 import type { AuthResponse } from "../api/types";
 import { useAuth } from "../auth/AuthContext";
 import DemoVideo, { hasDemoVideo } from "../components/DemoVideo";
+import AppFooter from "../components/AppFooter";
+import HelpHint from "../components/HelpHint";
 import { Field, btnPrimary, btnSecondary, inputClass } from "../components/Field";
+import { hints } from "../content/hints";
 import { projectRepoUrl } from "../utils/demoConfig";
 import { summarizeFieldErrors, validateLoginFields } from "../utils/validateAuthFields";
 
@@ -91,12 +94,13 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6">
-      <div
-        className={`w-full rounded-2xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6 shadow-xl ${
-          showVideo ? "max-w-4xl" : "max-w-md"
-        }`}
-      >
+    <div className="min-h-screen flex flex-col">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6">
+        <div
+          className={`w-full rounded-2xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6 shadow-xl ${
+            showVideo ? "max-w-4xl" : "max-w-md"
+          }`}
+        >
         <div className={showVideo ? "flex flex-col lg:flex-row gap-8" : undefined}>
           {showVideo && (
             <div className="flex-1 min-w-0">
@@ -125,22 +129,34 @@ export default function LoginPage() {
             )}
 
             {(seedUserEmail || seedAdminEmail) && (
-              <div className="mt-4 flex flex-wrap gap-2">
-                {seedUserEmail && (
-                  <button type="button" className={btnSecondary} onClick={fillDemoUser}>
-                    Fill demo user
-                  </button>
-                )}
-                {seedAdminEmail && (
-                  <button type="button" className={btnSecondary} onClick={fillDemoAdmin}>
-                    Fill demo admin
-                  </button>
-                )}
+              <div className="mt-4 rounded-lg border border-slate-800 bg-slate-950/40 p-4">
+                <h2 className="text-sm font-medium text-slate-200">{hints.login.demoTitle}</h2>
+                <p className="mt-1 text-xs text-slate-400">{hints.login.demoIntro}</p>
+                <div className="mt-3 flex flex-col gap-2">
+                  {seedAdminEmail && (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button type="button" className={btnSecondary} onClick={fillDemoAdmin}>
+                        {hints.login.useManagerAccount}
+                      </button>
+                      <span className="text-xs text-slate-500">{seedAdminEmail}</span>
+                      <HelpHint text={hints.login.managerAccountHelp} />
+                    </div>
+                  )}
+                  {seedUserEmail && (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button type="button" className={btnSecondary} onClick={fillDemoUser}>
+                        {hints.login.useTeamMemberAccount}
+                      </button>
+                      <span className="text-xs text-slate-500">{seedUserEmail}</span>
+                      <HelpHint text={hints.login.teamMemberAccountHelp} />
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
             <form className="mt-6 space-y-4" onSubmit={onSubmit}>
-              <Field label="Email">
+              <Field label="Email" hint={hints.login.emailHint}>
                 <input
                   className={inputClass}
                   value={email}
@@ -152,7 +168,7 @@ export default function LoginPage() {
                   autoComplete="username"
                 />
               </Field>
-              <Field label="Password">
+              <Field label="Password" hint={hints.login.passwordHint}>
                 <input
                   className={inputClass}
                   value={password}
@@ -186,7 +202,7 @@ export default function LoginPage() {
 
               <div className="text-xs text-slate-400">
                 Developer docs:{" "}
-                <a className="underline" href="/swagger-ui/index.html">
+                <a className="underline" href="/swagger-ui/index.html" title={hints.login.swagger}>
                   API reference (Swagger)
                 </a>
               </div>
@@ -194,6 +210,8 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+      </div>
+      <AppFooter />
     </div>
   );
 }

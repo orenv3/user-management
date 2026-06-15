@@ -1,17 +1,23 @@
 import type { ReactNode } from "react";
+import HelpHint from "./HelpHint";
 
 export function Field({
   label,
   children,
   hint,
+  help,
 }: {
   label: string;
   children: ReactNode;
   hint?: string;
+  help?: string;
 }) {
   return (
     <div>
-      <label className="text-sm text-slate-200">{label}</label>
+      <div className="flex items-center gap-1.5">
+        <label className="text-sm text-slate-200">{label}</label>
+        {help && <HelpHint text={help} />}
+      </div>
       {hint && <p className="text-xs text-slate-500 mt-0.5">{hint}</p>}
       <div className="mt-1">{children}</div>
     </div>
