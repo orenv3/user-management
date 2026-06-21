@@ -14,6 +14,18 @@ export type AuthResponse = {
   userId: number;
 };
 
+export type PublicConfigResponse = {
+  demoVideoUrl?: string;
+  projectRepoUrl?: string;
+  privateAdminEmail?: string;
+  seedUserName?: string;
+  seedUserEmail?: string;
+  seedUserPassword?: string;
+  seedAdminName?: string;
+  seedAdminEmail?: string;
+  seedAdminPassword?: string;
+};
+
 export type UserResponse = {
   id: number;
   name: string;

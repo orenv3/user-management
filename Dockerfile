@@ -10,7 +10,7 @@ WORKDIR /workspace
 COPY pom.xml .
 RUN mvn -q -DskipTests dependency:go-offline
 
-# Vite reads VITE_* from repo-root .env during npm build (see frontend/vite.config.ts envDir).
+# .env is optional at build time; frontend public config is served at runtime via GET /api/config.
 COPY .env* ./
 RUN test -f .env || cp .env.example .env
 

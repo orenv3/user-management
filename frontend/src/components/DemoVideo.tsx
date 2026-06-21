@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  demoVideoUrl,
+  getDemoVideoUrl,
   isDemoVideoConfigured,
   isLocalVideoPath,
   toYouTubeEmbedUrl,
@@ -8,6 +8,7 @@ import {
 
 export default function DemoVideo() {
   const [hidden, setHidden] = useState(false);
+  const demoVideoUrl = getDemoVideoUrl();
 
   if (!demoVideoUrl || hidden) {
     return null;

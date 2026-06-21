@@ -1,10 +1,17 @@
+import { getRuntimeConfig } from "../config/runtimeConfig";
+
 function trimEnv(value: string | undefined): string | undefined {
   const trimmed = value?.trim();
   return trimmed ? trimmed : undefined;
 }
 
-export const demoVideoUrl = trimEnv(import.meta.env.VITE_DEMO_VIDEO_URL);
-export const projectRepoUrl = trimEnv(import.meta.env.VITE_PROJECT_REPO_URL);
+export function getDemoVideoUrl(): string | undefined {
+  return trimEnv(getRuntimeConfig().demoVideoUrl);
+}
+
+export function getProjectRepoUrl(): string | undefined {
+  return trimEnv(getRuntimeConfig().projectRepoUrl);
+}
 
 /** Returns embed URL for YouTube watch/youtu.be/embed links, or null if not YouTube. */
 export function toYouTubeEmbedUrl(url: string): string | null {
@@ -39,6 +46,7 @@ export function isLocalVideoPath(url: string): boolean {
 }
 
 export function isDemoVideoConfigured(): boolean {
+  const demoVideoUrl = getDemoVideoUrl();
   if (!demoVideoUrl) return false;
   return toYouTubeEmbedUrl(demoVideoUrl) !== null || isLocalVideoPath(demoVideoUrl);
 }

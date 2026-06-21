@@ -78,6 +78,13 @@ class ApplicationApiIntegrationTest {
     }
 
     @Test
+    void publicConfig_isAccessibleWithoutAuth() throws Exception {
+        mockMvc.perform(get("/api/config"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.privateAdminEmail").value("private-admin@test.com"));
+    }
+
+    @Test
     void unauthenticatedRequestToUserApi_returns401() throws Exception {
         mockMvc.perform(get("/api/task/user/allTaskList/1"))
                 .andExpect(status().isUnauthorized());

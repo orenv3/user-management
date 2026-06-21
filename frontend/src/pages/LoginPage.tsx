@@ -8,13 +8,9 @@ import AppFooter from "../components/AppFooter";
 import HelpHint from "../components/HelpHint";
 import { Field, btnPrimary, btnSecondary, inputClass } from "../components/Field";
 import { hints } from "../content/hints";
-import { projectRepoUrl } from "../utils/demoConfig";
+import { getRuntimeConfig } from "../config/runtimeConfig";
+import { getProjectRepoUrl } from "../utils/demoConfig";
 import { summarizeFieldErrors, validateLoginFields } from "../utils/validateAuthFields";
-
-const seedUserEmail = import.meta.env.VITE_SEED_USER_EMAIL as string | undefined;
-const seedUserPassword = import.meta.env.VITE_SEED_USER_PASSWORD as string | undefined;
-const seedAdminEmail = import.meta.env.VITE_SEED_ADMIN_EMAIL as string | undefined;
-const seedAdminPassword = import.meta.env.VITE_SEED_ADMIN_PASSWORD as string | undefined;
 
 function isAuthFailureMessage(message: string): boolean {
   return (
@@ -33,6 +29,13 @@ export default function LoginPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string> | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const showVideo = hasDemoVideo();
+  const projectRepoUrl = getProjectRepoUrl();
+  const {
+    seedUserEmail,
+    seedUserPassword,
+    seedAdminEmail,
+    seedAdminPassword,
+  } = getRuntimeConfig();
 
   if (!loading && me) {
     return <Navigate to="/" replace />;

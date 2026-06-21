@@ -1,9 +1,10 @@
-const PRIVATE_EMAIL = import.meta.env.VITE_PRIVATE_ADMIN_EMAIL as string | undefined;
+import { getPrivateAdminEmail } from "../config/runtimeConfig";
 
 export const PRIVATE_ADMIN_LABEL = "[private admin]";
 
 export function isPrivateAdminEmail(email: string | null | undefined): boolean {
-  return !!PRIVATE_EMAIL && !!email && email === PRIVATE_EMAIL;
+  const privateEmail = getPrivateAdminEmail();
+  return !!privateEmail && !!email && email === privateEmail;
 }
 
 /** Safe email for any UI text (header, tables, overview). */
@@ -15,8 +16,9 @@ export function displayEmail(email: string | null | undefined): string {
 
 /** Remove private admin from user lists so the row never appears in the web UI. */
 export function filterPrivateAdminUsers<T extends { email: string }>(users: T[]): T[] {
-  if (!PRIVATE_EMAIL) return users;
-  return users.filter((u) => u.email !== PRIVATE_EMAIL);
+  const privateEmail = getPrivateAdminEmail();
+  if (!privateEmail) return users;
+  return users.filter((u) => u.email !== privateEmail);
 }
 
 const PASSWORD_KEYS = new Set(["password", "oldPassword", "newPassword"]);

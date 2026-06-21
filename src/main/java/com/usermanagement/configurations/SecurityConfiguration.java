@@ -56,6 +56,8 @@ public class SecurityConfiguration {
                 .permitAll()
                 .requestMatchers(req->  req.getRequestURI().contains("/auth/login"))
                 .permitAll()
+                .requestMatchers(req -> req.getRequestURI().equals("/api/config"))
+                .permitAll()
                 .requestMatchers(req-> req.getRequestURI().equals("/api/analytics/event"))
                 .permitAll()
                 .requestMatchers(req->  req.getRequestURI().contains("/user/")).hasAuthority("USER")

@@ -13,16 +13,18 @@ import PageSection from "../components/PageSection";
 import ResultPanel from "../components/ResultPanel";
 import { hints } from "../content/hints";
 import { useAction } from "../hooks/useAction";
+import { getRuntimeConfig } from "../config/runtimeConfig";
 import { filterPrivateAdminUsers } from "../utils/redactSensitiveInResults";
 
-const seedUserName = import.meta.env.VITE_SEED_USER_NAME as string | undefined;
-const seedUserEmail = import.meta.env.VITE_SEED_USER_EMAIL as string | undefined;
-const seedUserPassword = import.meta.env.VITE_SEED_USER_PASSWORD as string | undefined;
-const seedAdminName = import.meta.env.VITE_SEED_ADMIN_NAME as string | undefined;
-const seedAdminEmail = import.meta.env.VITE_SEED_ADMIN_EMAIL as string | undefined;
-const seedAdminPassword = import.meta.env.VITE_SEED_ADMIN_PASSWORD as string | undefined;
-
 export default function UsersPage() {
+  const {
+    seedUserName,
+    seedUserEmail,
+    seedUserPassword,
+    seedAdminName,
+    seedAdminEmail,
+    seedAdminPassword,
+  } = getRuntimeConfig();
   const [users, setUsers] = useState<UserResponse[]>([]);
   const listAction = useAction();
   const paginatedAction = useAction();
