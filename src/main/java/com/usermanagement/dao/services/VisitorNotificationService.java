@@ -27,7 +27,14 @@ public class VisitorNotificationService {
     private final PrivateAdminPolicy privateAdminPolicy;
 
     public void handleSuccessfulLogin(String clientIp, String loginEmail, String userAgent) {
-        if (!shouldNotify(clientIp, loginEmail)) {
+        String skipReason = skipReason(clientIp, loginEmail);
+        if (skipReason != null) {
+            log.info(
+                    "Visitor notification skipped. reason={} visitorIp={} loginAccount={}",
+                    skipReason,
+                    clientIp,
+                    loginEmail
+            );
             return;
         }
 
@@ -40,7 +47,7 @@ public class VisitorNotificationService {
                 }
                 visitorNotificationRepository.save(existing);
             });
-            log.debug("Returning visitor login ignored for notification. ip={}", clientIp);
+            log.info("Visitor notification skipped. reason=already_notified visitorIp={} loginAccount={}", clientIp, loginEmail);
             return;
         }
 
@@ -53,7 +60,13 @@ public class VisitorNotificationService {
             notification.setLastSeenAt(now);
             visitorNotificationRepository.save(notification);
             mailSender.sendNotification(clientIp, loginEmail, userAgent, now);
-            log.info("New visitor recorded for notification. ip={} email={}", clientIp, loginEmail);
+            log.info(
+                    "New visitor recorded for notification. notifyFrom={} notifyTo={} visitorIp={} loginAccount={}",
+                    properties.from(),
+                    properties.to(),
+                    clientIp,
+                    loginEmail
+            );
         } catch (DataIntegrityViolationException ex) {
             visitorNotificationRepository.findByClientIp(clientIp).ifPresent(existing -> {
                 existing.setLastSeenAt(now);
@@ -62,27 +75,30 @@ public class VisitorNotificationService {
                 }
                 visitorNotificationRepository.save(existing);
             });
-            log.debug("Concurrent visitor login ignored for notification. ip={}", clientIp);
+            log.info("Visitor notification skipped. reason=concurrent_duplicate visitorIp={} loginAccount={}", clientIp, loginEmail);
         }
     }
 
-    private boolean shouldNotify(String clientIp, String loginEmail) {
+    private String skipReason(String clientIp, String loginEmail) {
         if (!properties.enabled()) {
-            return false;
+            return "disabled";
         }
         if (isBlank(properties.to()) || isBlank(properties.from())) {
-            return false;
+            return "missing_notify_to_or_from";
         }
         if (clientIp == null || clientIp.isBlank()) {
-            return false;
+            return "missing_client_ip";
         }
         if (privateAdminPolicy.isPrivateAdmin(loginEmail)) {
-            return false;
+            return "private_admin_login";
         }
-        if (isIgnoredIp(clientIp.trim()) || isPrivateOrLoopback(clientIp.trim())) {
-            return false;
+        if (isIgnoredIp(clientIp.trim())) {
+            return "ignored_ip";
         }
-        return true;
+        if (isPrivateOrLoopback(clientIp.trim())) {
+            return "private_or_loopback_ip";
+        }
+        return null;
     }
 
     private boolean isIgnoredIp(String clientIp) {

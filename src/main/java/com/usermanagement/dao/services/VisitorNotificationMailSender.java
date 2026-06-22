@@ -25,16 +25,31 @@ public class VisitorNotificationMailSender {
 
     @Async("visitorNotificationExecutor")
     public void sendNotification(String clientIp, String loginEmail, String userAgent, Instant seenAt) {
+        String notifyFrom = properties.from();
+        String notifyTo = properties.to();
         try {
             SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(properties.from());
-            message.setTo(properties.to());
+            message.setFrom(notifyFrom);
+            message.setTo(notifyTo);
             message.setSubject("New demo visitor logged in");
             message.setText(buildBody(clientIp, loginEmail, userAgent, seenAt));
             mailSender.send(message);
-            log.info("Visitor notification email sent. ip={} email={}", clientIp, loginEmail);
+            log.info(
+                    "Visitor notification email sent. notifyFrom={} notifyTo={} visitorIp={} loginAccount={}",
+                    notifyFrom,
+                    notifyTo,
+                    clientIp,
+                    loginEmail
+            );
         } catch (Exception ex) {
-            log.error("Failed to send visitor notification email. ip={} email={}", clientIp, loginEmail, ex);
+            log.error(
+                    "Failed to send visitor notification email. notifyFrom={} notifyTo={} visitorIp={} loginAccount={}",
+                    notifyFrom,
+                    notifyTo,
+                    clientIp,
+                    loginEmail,
+                    ex
+            );
         }
     }
 
