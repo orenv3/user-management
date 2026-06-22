@@ -3,6 +3,7 @@ package com.usermanagement.integration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.usermanagement.entities.Task;
 import com.usermanagement.entities.Users;
+import com.usermanagement.dao.services.VisitorNotificationMailSender;
 import com.usermanagement.repositories.TaskRepo;
 import com.usermanagement.repositories.UserRepo;
 import com.usermanagement.requestObjects.AdminCreateCommentRequest;
@@ -16,11 +17,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -48,6 +55,8 @@ class ApplicationApiIntegrationTest {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private ObjectMapper objectMapper;
+    @MockBean
+    private VisitorNotificationMailSender visitorNotificationMailSender;
 
     private Users admin;
 
@@ -66,10 +75,18 @@ class ApplicationApiIntegrationTest {
     }
 
     private String login(String email, String password) throws Exception {
+        return login(email, password, null);
+    }
+
+    private String login(String email, String password, String forwardedFor) throws Exception {
+        var requestBuilder = post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}");
+        if (forwardedFor != null) {
+            requestBuilder = requestBuilder.header("X-Forwarded-For", forwardedFor);
+        }
         return objectMapper.readTree(
-                mockMvc.perform(post("/api/auth/login")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"))
+                mockMvc.perform(requestBuilder)
                         .andExpect(status().isOk())
                         .andReturn()
                         .getResponse()
@@ -443,6 +460,19 @@ class ApplicationApiIntegrationTest {
                         .content(objectMapper.writeValueAsString(update)))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.message").value(containsString("protected")));
+    }
+
+    @Test
+    void visitorNotification_sendsEmailOncePerIp() throws Exception {
+        login("user@example.com", "userPass", "203.0.113.42");
+        login("admin@example.com", "adminPass", "203.0.113.42");
+
+        verify(visitorNotificationMailSender, times(1)).sendNotification(
+                eq("203.0.113.42"),
+                eq("user@example.com"),
+                any(),
+                any()
+        );
     }
 
     @Test

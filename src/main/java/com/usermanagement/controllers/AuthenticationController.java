@@ -1,5 +1,6 @@
 package com.usermanagement.controllers;
 
+import com.usermanagement.dao.services.VisitorNotificationService;
 import com.usermanagement.errorHandler.UserValidationErrorException;
 import com.usermanagement.entities.Users;
 import com.usermanagement.requestObjects.CreateUserRequest;
@@ -7,9 +8,11 @@ import com.usermanagement.repositories.UserRepo;
 import com.usermanagement.security.AuthResponse;
 import com.usermanagement.security.AuthenticationRequest;
 import com.usermanagement.security.AuthenticationService;
+import com.usermanagement.utils.ClientIpResolver;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +33,7 @@ public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
     private final UserRepo userRepo;
+    private final VisitorNotificationService visitorNotificationService;
 
 
     @PostMapping("admin/registerUser")
@@ -40,8 +44,17 @@ public class AuthenticationController {
 
     @PostMapping("login")
     @Operation(summary = "Login and receive a JWT")
-    public ResponseEntity<AuthResponse> authenticate(@Valid @RequestBody AuthenticationRequest authRequest){
-        return ResponseEntity.ok(authenticationService.authenticateUser(authRequest));
+    public ResponseEntity<AuthResponse> authenticate(
+            @Valid @RequestBody AuthenticationRequest authRequest,
+            HttpServletRequest request
+    ) {
+        AuthResponse response = authenticationService.authenticateUser(authRequest);
+        visitorNotificationService.handleSuccessfulLogin(
+                ClientIpResolver.resolve(request),
+                authRequest.getEmail(),
+                request.getHeader("User-Agent")
+        );
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("me")

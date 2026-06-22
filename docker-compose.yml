@@ -18,7 +18,7 @@ services:
     env_file:
       - .env
     environment:
-      - SPRING_PROFILES_ACTIVE=docker,dev-seed,filelog
+      - SPRING_PROFILES_ACTIVE=prod,dev-seed,filelog
       - JWT_SECRET=${JWT_SECRET}
       - LOG_PATH=/logs
     volumes:
